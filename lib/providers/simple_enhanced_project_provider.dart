@@ -1,0 +1,282 @@
+import 'package:flutter/material.dart';
+import '../shared/models/project_model.dart';
+import '../features/project/services/project_service.dart';
+
+enum ProjectState {
+  initial,
+  loading,
+  loaded,
+  error,
+  loadingMore,
+}
+
+class EnhancedProjectProvider with ChangeNotifier {
+  final ProjectService _projectService = ProjectService();
+
+  // State management
+  ProjectState _state = ProjectState.initial;
+  List<Project> _projects = [];
+  List<Project> _filteredProjects = [];
+  Project? _selectedProject;
+  String? _errorMessage;
+  String _searchQuery = '';
+  bool _hasReachedMax = false;
+
+  // Filters
+  ProjectStatus? _statusFilter;
+  ProjectPriority? _priorityFilter;
+  String? _customerFilter;
+
+  // Getters
+  ProjectState get state => _state;
+  List<Project> get projects =>
+      _filteredProjects.isNotEmpty ? _filteredProjects : _projects;
+  Project? get selectedProject => _selectedProject;
+  String? get errorMessage => _errorMessage;
+  String get searchQuery => _searchQuery;
+  bool get hasReachedMax => _hasReachedMax;
+  bool get isLoading => _state == ProjectState.loading;
+  bool get isLoadingMore => _state == ProjectState.loadingMore;
+  ProjectStatus? get statusFilter => _statusFilter;
+  ProjectPriority? get priorityFilter => _priorityFilter;
+  String? get customerFilter => _customerFilter;
+
+  // Pagination
+  bool get canLoadMore =>
+      !_hasReachedMax &&
+      _state != ProjectState.loading &&
+      _state != ProjectState.loadingMore;
+
+  // Load projects
+  Future<void> loadProjects({bool refresh = false}) async {
+    if (refresh) {
+      _hasReachedMax = false;
+      _projects.clear();
+      _filteredProjects.clear();
+    }
+
+    _setState(ProjectState.loading);
+    _clearError();
+
+    try {
+      final projects = await _projectService.getProjects();
+      _projects = projects;
+      _applyFiltersAndSort();
+      _setState(ProjectState.loaded);
+    } catch (e) {
+      _setError('Failed to load projects: $e');
+      _setState(ProjectState.error);
+    }
+  }
+
+  // Load more projects
+  Future<void> loadMoreProjects() async {
+    if (!canLoadMore) return;
+
+    _setState(ProjectState.loadingMore);
+
+    try {
+      // Simulate pagination (in real app, this would fetch next page)
+      await Future.delayed(const Duration(milliseconds: 500));
+      _setState(ProjectState.loaded);
+    } catch (e) {
+      _setError('Failed to load more projects: $e');
+      _setState(ProjectState.error);
+    }
+  }
+
+  // Search
+  void searchProjects(String query) {
+    _searchQuery = query;
+    _applyFiltersAndSort();
+  }
+
+  // Filters
+  void setStatusFilter(ProjectStatus? status) {
+    _statusFilter = status;
+    _applyFiltersAndSort();
+  }
+
+  void setPriorityFilter(ProjectPriority? priority) {
+    _priorityFilter = priority;
+    _applyFiltersAndSort();
+  }
+
+  void setCustomerFilter(String? customerId) {
+    _customerFilter = customerId;
+    _applyFiltersAndSort();
+  }
+
+  void clearFilters() {
+    _statusFilter = null;
+    _priorityFilter = null;
+    _customerFilter = null;
+    _searchQuery = '';
+    _applyFiltersAndSort();
+  }
+
+  // Get projects by status
+  Future<void> getProjectsByStatus(ProjectStatus status) async {
+    _setState(ProjectState.loading);
+    _clearError();
+
+    try {
+      final projects = await _projectService.getProjectsByStatus(status);
+      _projects = projects;
+      _applyFiltersAndSort();
+      _setState(ProjectState.loaded);
+    } catch (e) {
+      _setError('Failed to load projects by status: $e');
+      _setState(ProjectState.error);
+    }
+  }
+
+  // CRUD operations
+  Future<bool> createProject(Project project, String customerCode) async {
+    try {
+      final created =
+          await _projectService.createProject(project, customerCode);
+      _projects.add(created);
+      _applyFiltersAndSort();
+      return true;
+    } catch (e) {
+      _setError('Failed to create project: $e');
+      return false;
+    }
+  }
+
+  Future<bool> updateProject(Project project) async {
+    try {
+      final updated =
+          await _projectService.updateProject(project.projectId, project);
+      final index =
+          _projects.indexWhere((p) => p.projectId == project.projectId);
+      if (index != -1) {
+        _projects[index] = updated;
+        _applyFiltersAndSort();
+      }
+      return true;
+    } catch (e) {
+      _setError('Failed to update project: $e');
+      return false;
+    }
+  }
+
+  Future<bool> deleteProject(String projectId) async {
+    try {
+      await _projectService.deleteProject(projectId);
+      _projects.removeWhere((p) => p.projectId == projectId);
+      _applyFiltersAndSort();
+      return true;
+    } catch (e) {
+      _setError('Failed to delete project: $e');
+      return false;
+    }
+  }
+
+  // Get project by ID
+  Future<Project?> getProjectById(String projectId) async {
+    try {
+      return await _projectService.getProjectById(projectId);
+    } catch (e) {
+      _setError('Failed to get project: $e');
+      return null;
+    }
+  }
+
+  // Update project status
+  Future<bool> updateProjectStatus(
+      String projectId, ProjectStatus status) async {
+    try {
+      final updated =
+          await _projectService.updateProjectStatus(projectId, status);
+      final index = _projects.indexWhere((p) => p.projectId == projectId);
+      if (index != -1) {
+        _projects[index] = updated;
+        _applyFiltersAndSort();
+      }
+      return true;
+    } catch (e) {
+      _setError('Failed to update project status: $e');
+      return false;
+    }
+  }
+
+  // Select project
+  void selectProject(Project project) {
+    _selectedProject = project;
+    notifyListeners();
+  }
+
+  void clearSelection() {
+    _selectedProject = null;
+    notifyListeners();
+  }
+
+  // Statistics
+  int get totalProjects => _projects.length;
+  int get activeProjects => _projects
+      .where((p) =>
+          p.status == ProjectStatus.active ||
+          p.status == ProjectStatus.inProgress)
+      .length;
+  int get completedProjects =>
+      _projects.where((p) => p.status == ProjectStatus.completed).length;
+  double get totalCost => _projects.fold(0.0, (sum, p) => sum + p.totalCost);
+  double get totalHours => _projects.fold(0.0, (sum, p) => sum + p.totalHours);
+
+  // Private methods
+  void _setState(ProjectState state) {
+    _state = state;
+    notifyListeners();
+  }
+
+  void _setError(String error) {
+    _errorMessage = error;
+    notifyListeners();
+  }
+
+  void _clearError() {
+    _errorMessage = null;
+  }
+
+  void _applyFiltersAndSort() {
+    List<Project> filtered = List.from(_projects);
+
+    // Apply search filter
+    if (_searchQuery.isNotEmpty) {
+      filtered = filtered.where((project) {
+        return project.jobName
+                .toLowerCase()
+                .contains(_searchQuery.toLowerCase()) ||
+            project.jobCode.toLowerCase().contains(_searchQuery.toLowerCase());
+      }).toList();
+    }
+
+    // Apply status filter
+    if (_statusFilter != null) {
+      filtered =
+          filtered.where((project) => project.status == _statusFilter).toList();
+    }
+
+    // Apply priority filter
+    if (_priorityFilter != null) {
+      filtered = filtered
+          .where((project) => project.priority == _priorityFilter)
+          .toList();
+    }
+
+    // Apply customer filter
+    if (_customerFilter != null && _customerFilter!.isNotEmpty) {
+      filtered = filtered
+          .where((project) => project.customerId == _customerFilter)
+          .toList();
+    }
+
+    // Sort by creation date (newest first)
+    filtered.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+
+    _filteredProjects = filtered;
+    notifyListeners();
+  }
+}
