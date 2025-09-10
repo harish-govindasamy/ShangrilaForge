@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../providers/enhanced_employee_provider.dart';
+import '../../../providers/simple_enhanced_employee_provider.dart';
 import '../../../core/monitoring/analytics_service.dart';
 import 'employee_detail_screen.dart';
 import 'employee_form_screen.dart';

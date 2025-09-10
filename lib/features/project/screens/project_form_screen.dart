@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../../shared/models/project_model.dart';
+import '../../../shared/models/employee_model.dart';
 import '../../../providers/enhanced_project_provider.dart';
+import '../../../providers/simple_enhanced_employee_provider.dart';
 
 class ProjectFormScreen extends StatefulWidget {
   final Project? project;
@@ -441,11 +443,48 @@ class _ProjectFormScreenState extends State<ProjectFormScreen> {
                 spacing: 8,
                 runSpacing: 8,
                 children: _assignedEmployeeIds.map((employeeId) {
+                  final employeeProvider =
+                      context.watch<EnhancedEmployeeProvider>();
+                  final employee = employeeProvider.employees.firstWhere(
+                    (emp) => emp.employeeId == employeeId,
+                    orElse: () => Employee(
+                      empName: 'Unknown Employee',
+                      empEmail: '',
+                      empDob: DateTime.now(),
+                      empAddress: '',
+                      empDesignation: '',
+                      empBgp: '',
+                      empCmob: '',
+                      bankAccount: '',
+                      ifscCode: '',
+                      uniqueIdentificationNumber: '',
+                      ssnNo: '',
+                      emergencyName: '',
+                      emergencyRelation: '',
+                      emergencyPhone: '',
+                      employeeId: employeeId,
+                      userId: '',
+                      firstName: '',
+                      lastName: '',
+                      empCode: '',
+                      email: '',
+                      department: '',
+                      gender: '',
+                      maritalStatus: '',
+                      city: '',
+                      state: '',
+                      country: '',
+                      postalCode: '',
+                    ),
+                  );
+
                   return Chip(
                     avatar: CircleAvatar(
                       backgroundColor: Colors.blue,
                       child: Text(
-                        employeeId.substring(0, 1).toUpperCase(),
+                        employee.empName.isNotEmpty
+                            ? employee.empName.substring(0, 1).toUpperCase()
+                            : employeeId.substring(0, 1).toUpperCase(),
                         style: const TextStyle(
                           color: Colors.white,
                           fontSize: 12,
@@ -453,8 +492,9 @@ class _ProjectFormScreenState extends State<ProjectFormScreen> {
                         ),
                       ),
                     ),
-                    label:
-                        Text('Employee: $employeeId'), // TODO: Get actual name
+                    label: Text(employee.empName.isNotEmpty
+                        ? employee.empName
+                        : 'Employee: $employeeId'),
                     deleteIcon: const Icon(Icons.close),
                     onDeleted: () {
                       setState(() {

@@ -128,6 +128,31 @@ class EnhancedEmployeeProvider with ChangeNotifier {
     _applyFiltersAndSort();
   }
 
+  // Additional sorting method for compatibility
+  void applySorting(String sortBy) {
+    SortBy sortType;
+    switch (sortBy) {
+      case 'empName':
+        sortType = SortBy.name;
+        break;
+      case 'department':
+        sortType = SortBy.department;
+        break;
+      case 'empExp':
+        sortType = SortBy.experience;
+        break;
+      case 'joinDate':
+        sortType = SortBy.joinDate;
+        break;
+      case 'empDesignation':
+        sortType = SortBy.designation;
+        break;
+      default:
+        sortType = SortBy.name;
+    }
+    setSortBy(sortType);
+  }
+
   // CRUD operations
   Future<bool> createEmployee(Employee employee) async {
     try {
