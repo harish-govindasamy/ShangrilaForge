@@ -1,19 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../../../providers/simple_enhanced_employee_provider.dart';
+import '../providers/enhanced_employee_provider.dart';
 import '../../../core/monitoring/analytics_service.dart';
 import 'employee_detail_screen.dart';
 import 'employee_form_screen.dart';
 import '../widgets/enhanced_employee_card.dart';
 
-class EmployeeListScreen extends StatefulWidget {
-  const EmployeeListScreen({super.key});
+class EnhancedEmployeeListScreen extends StatefulWidget {
+  const EnhancedEmployeeListScreen({super.key});
 
   @override
-  State<EmployeeListScreen> createState() => _EmployeeListScreenState();
+  State<EnhancedEmployeeListScreen> createState() =>
+      _EnhancedEmployeeListScreenState();
 }
 
-class _EmployeeListScreenState extends State<EmployeeListScreen> {
+class _EnhancedEmployeeListScreenState
+    extends State<EnhancedEmployeeListScreen> {
   final ScrollController _scrollController = ScrollController();
   final TextEditingController _searchController = TextEditingController();
   bool _showSearch = false;
@@ -168,6 +170,7 @@ class _EmployeeListScreenState extends State<EmployeeListScreen> {
         },
         icon: const Icon(Icons.add),
         label: const Text('Add Employee'),
+        heroTag: 'add_employee_enhanced_fab',
       ),
     );
   }

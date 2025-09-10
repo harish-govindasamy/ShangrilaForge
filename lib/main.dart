@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
 import 'core/network/api_service.dart';
+import 'core/services/provider_factory.dart';
 import 'features/auth/auth_service.dart';
 import 'features/auth/providers/auth_provider.dart';
 import 'features/employee/providers/employee_provider.dart';
@@ -10,8 +11,6 @@ import 'features/project/providers/project_provider.dart';
 import 'features/timesheet/providers/timesheet_provider.dart';
 import 'features/customer/providers/customer_provider.dart';
 import 'features/reports/providers/report_provider.dart';
-import 'providers/simple_enhanced_employee_provider.dart';
-import 'providers/simple_enhanced_project_provider.dart';
 import 'features/dashboard/screens/splash_screen.dart';
 import 'core/constants/app_constants.dart';
 
@@ -53,8 +52,10 @@ class ShangrilaEngineersApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => AuthProvider()),
         ChangeNotifierProvider(create: (_) => EmployeeProvider()),
         ChangeNotifierProvider(create: (_) => ProjectProvider()),
-        ChangeNotifierProvider(create: (_) => EnhancedEmployeeProvider()),
-        ChangeNotifierProvider(create: (_) => EnhancedProjectProvider()),
+        ChangeNotifierProvider(
+            create: (_) => ProviderFactory.createEnhancedEmployeeProvider()),
+        ChangeNotifierProvider(
+            create: (_) => ProviderFactory.createEnhancedProjectProvider()),
         ChangeNotifierProvider(create: (_) => TimesheetProvider()),
         ChangeNotifierProvider(create: (_) => CustomerProvider()),
         ChangeNotifierProvider(create: (_) => ReportProvider()),

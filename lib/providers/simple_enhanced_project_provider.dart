@@ -2,23 +2,20 @@ import 'package:flutter/material.dart';
 import '../shared/models/project_model.dart';
 import '../features/project/services/project_service.dart';
 
-enum ProjectState {
-  initial,
-  loading,
-  loaded,
-  error,
-  loadingMore,
-}
+// To match the enum from enhanced_project_provider.dart
+enum ProjectLoadingState { idle, loading, loaded, error }
+
+enum ProjectOperation { create, update, delete, archive, restore }
 
 class EnhancedProjectProvider with ChangeNotifier {
   final ProjectService _projectService = ProjectService();
 
   // State management
-  ProjectState _state = ProjectState.initial;
+  ProjectLoadingState _loadingState = ProjectLoadingState.idle;
   List<Project> _projects = [];
   List<Project> _filteredProjects = [];
   Project? _selectedProject;
-  String? _errorMessage;
+  String _errorMessage = '';
   String _searchQuery = '';
   bool _hasReachedMax = false;
 
@@ -26,46 +23,147 @@ class EnhancedProjectProvider with ChangeNotifier {
   ProjectStatus? _statusFilter;
   ProjectPriority? _priorityFilter;
   String? _customerFilter;
+  bool _showArchived = false;
+  String? _employeeFilter;
+  List<String> _tagFilters = [];
 
   // Getters
-  ProjectState get state => _state;
+  ProjectLoadingState get loadingState => _loadingState;
   List<Project> get projects =>
       _filteredProjects.isNotEmpty ? _filteredProjects : _projects;
+  List<Project> get allProjects => _projects;
   Project? get selectedProject => _selectedProject;
-  String? get errorMessage => _errorMessage;
+  String get errorMessage => _errorMessage;
   String get searchQuery => _searchQuery;
   bool get hasReachedMax => _hasReachedMax;
-  bool get isLoading => _state == ProjectState.loading;
+  bool get isLoading => _loadingState == ProjectLoadingState.loading;
   bool get isLoadingMore => _state == ProjectState.loadingMore;
   ProjectStatus? get statusFilter => _statusFilter;
   ProjectPriority? get priorityFilter => _priorityFilter;
   String? get customerFilter => _customerFilter;
+  bool get showArchived => _showArchived;
+  String? get employeeFilter => _employeeFilter;
+  List<String> get tagFilters => _tagFilters;
 
-  // Pagination
-  bool get canLoadMore =>
-      !_hasReachedMax &&
-      _state != ProjectState.loading &&
-      _state != ProjectState.loadingMore;
+  // For backward compatibility
+  ProjectState _state = ProjectState.initial;
+  ProjectState get state => _state;
 
   // Load projects
-  Future<void> loadProjects({bool refresh = false}) async {
-    if (refresh) {
+  Future<void> loadProjects({bool forceRefresh = false}) async {
+    if (forceRefresh) {
       _hasReachedMax = false;
       _projects.clear();
       _filteredProjects.clear();
     }
 
-    _setState(ProjectState.loading);
+    _setLoadingState(ProjectLoadingState.loading);
     _clearError();
 
     try {
       final projects = await _projectService.getProjects();
       _projects = projects;
       _applyFiltersAndSort();
-      _setState(ProjectState.loaded);
+      _setLoadingState(ProjectLoadingState.loaded);
     } catch (e) {
       _setError('Failed to load projects: $e');
-      _setState(ProjectState.error);
+      _setLoadingState(ProjectLoadingState.error);
+    }
+  }
+
+  // Project selection
+  void selectProjectById(String projectId) {
+    try {
+      _selectedProject = _projects.firstWhere(
+        (p) => p.projectId == projectId,
+        orElse: () => Project(
+          projectId: '',
+          jobName: '',
+          customerId: '',
+          jobCode: '',
+          createdAt: DateTime.now(),
+          updatedAt: DateTime.now(),
+          createdBy: '',
+          updatedBy: '',
+        ),
+      );
+
+      if (_selectedProject?.projectId.isEmpty == true) {
+        _selectedProject = null;
+      }
+
+      notifyListeners();
+    } catch (e) {
+      _setError('Failed to select project: $e');
+    }
+  }
+
+  // Project archive/restore functions
+  Future<bool> archiveProject({
+    required String projectId,
+    required String archivedBy,
+  }) async {
+    try {
+      // Find existing project
+      final index = _projects.indexWhere((p) => p.projectId == projectId);
+      if (index == -1) {
+        _setError('Project not found');
+        return false;
+      }
+
+      final existingProject = _projects[index];
+      final updatedProject = existingProject.copyWith(
+        isArchived: true,
+        updatedAt: DateTime.now(),
+        updatedBy: archivedBy,
+      );
+
+      // In a real implementation, this would call a service method
+      // For now, we'll just update our local state
+      _projects[index] = updatedProject;
+      if (_selectedProject?.projectId == projectId) {
+        _selectedProject = updatedProject;
+      }
+      _applyFiltersAndSort();
+
+      return true;
+    } catch (e) {
+      _setError('Failed to archive project: $e');
+      return false;
+    }
+  }
+
+  Future<bool> restoreProject({
+    required String projectId,
+    required String restoredBy,
+  }) async {
+    try {
+      // Find existing project
+      final index = _projects.indexWhere((p) => p.projectId == projectId);
+      if (index == -1) {
+        _setError('Project not found');
+        return false;
+      }
+
+      final existingProject = _projects[index];
+      final updatedProject = existingProject.copyWith(
+        isArchived: false,
+        updatedAt: DateTime.now(),
+        updatedBy: restoredBy,
+      );
+
+      // In a real implementation, this would call a service method
+      // For now, we'll just update our local state
+      _projects[index] = updatedProject;
+      if (_selectedProject?.projectId == projectId) {
+        _selectedProject = updatedProject;
+      }
+      _applyFiltersAndSort();
+
+      return true;
+    } catch (e) {
+      _setError('Failed to restore project: $e');
+      return false;
     }
   }
 
@@ -107,11 +205,32 @@ class EnhancedProjectProvider with ChangeNotifier {
     _applyFiltersAndSort();
   }
 
+  void setShowArchived(bool showArchived) {
+    _showArchived = showArchived;
+    _applyFiltersAndSort();
+    notifyListeners();
+  }
+
+  void setEmployeeFilter(String? employeeId) {
+    _employeeFilter = employeeId;
+    _applyFiltersAndSort();
+    notifyListeners();
+  }
+
+  void setTagFilters(List<String> tags) {
+    _tagFilters = tags;
+    _applyFiltersAndSort();
+    notifyListeners();
+  }
+
   void clearFilters() {
     _statusFilter = null;
     _priorityFilter = null;
     _customerFilter = null;
     _searchQuery = '';
+    _showArchived = false;
+    _employeeFilter = null;
+    _tagFilters = [];
     _applyFiltersAndSort();
   }
 
@@ -264,16 +383,6 @@ class EnhancedProjectProvider with ChangeNotifier {
     }
   }
 
-  // Load analytics data
-  Future<void> loadAnalytics() async {
-    // This is a placeholder for analytics loading
-    // In a real implementation, this would load analytics data
-    // For now, we'll just ensure projects are loaded
-    if (_projects.isEmpty) {
-      await loadProjects();
-    }
-  }
-
   // Additional helper methods for compatibility
   void applySorting(String sortBy) {
     // Simple sorting implementation
@@ -293,21 +402,14 @@ class EnhancedProjectProvider with ChangeNotifier {
     _applyFiltersAndSort();
   }
 
-  // Statistics
-  int get totalProjects => _projects.length;
-  int get activeProjects => _projects
-      .where((p) =>
-          p.status == ProjectStatus.active ||
-          p.status == ProjectStatus.inProgress)
-      .length;
-  int get completedProjects =>
-      _projects.where((p) => p.status == ProjectStatus.completed).length;
-  double get totalCost => _projects.fold(0.0, (sum, p) => sum + p.totalCost);
-  double get totalHours => _projects.fold(0.0, (sum, p) => sum + p.totalHours);
-
   // Private methods
   void _setState(ProjectState state) {
     _state = state;
+    notifyListeners();
+  }
+
+  void _setLoadingState(ProjectLoadingState state) {
+    _loadingState = state;
     notifyListeners();
   }
 
@@ -317,7 +419,7 @@ class EnhancedProjectProvider with ChangeNotifier {
   }
 
   void _clearError() {
-    _errorMessage = null;
+    _errorMessage = '';
   }
 
   void _applyFiltersAndSort() {
@@ -329,7 +431,12 @@ class EnhancedProjectProvider with ChangeNotifier {
         return project.jobName
                 .toLowerCase()
                 .contains(_searchQuery.toLowerCase()) ||
-            project.jobCode.toLowerCase().contains(_searchQuery.toLowerCase());
+            project.jobCode
+                .toLowerCase()
+                .contains(_searchQuery.toLowerCase()) ||
+            project.description
+                .toLowerCase()
+                .contains(_searchQuery.toLowerCase());
       }).toList();
     }
 
@@ -353,10 +460,44 @@ class EnhancedProjectProvider with ChangeNotifier {
           .toList();
     }
 
+    // Apply archive filter
+    filtered = filtered
+        .where((project) => project.isArchived == _showArchived)
+        .toList();
+
+    // Apply employee filter
+    if (_employeeFilter != null && _employeeFilter!.isNotEmpty) {
+      filtered = filtered
+          .where((project) =>
+              project.assignedEmployeeIds.contains(_employeeFilter))
+          .toList();
+    }
+
+    // Apply tag filters
+    if (_tagFilters.isNotEmpty) {
+      filtered = filtered
+          .where(
+              (project) => _tagFilters.any((tag) => project.tags.contains(tag)))
+          .toList();
+    }
+
     // Sort by creation date (newest first)
     filtered.sort((a, b) => b.createdAt.compareTo(a.createdAt));
 
     _filteredProjects = filtered;
     notifyListeners();
   }
+
+  // Pagination
+  bool get canLoadMore =>
+      !_hasReachedMax && _loadingState != ProjectLoadingState.loading;
+}
+
+// Keep this enum for backward compatibility
+enum ProjectState {
+  initial,
+  loading,
+  loaded,
+  error,
+  loadingMore,
 }

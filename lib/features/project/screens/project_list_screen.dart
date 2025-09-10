@@ -78,6 +78,7 @@ class _ProjectListScreenState extends State<ProjectListScreen> {
         onPressed: () => _navigateToForm(context),
         icon: const Icon(Icons.add),
         label: const Text('New Project'),
+        heroTag: 'new_project_fab',
       ),
     );
   }

@@ -168,6 +168,7 @@ class _EmployeeListScreenState extends State<EmployeeListScreen> {
         },
         icon: const Icon(Icons.add),
         label: const Text('Add Employee'),
+        heroTag: 'add_employee_fab',
       ),
     );
   }

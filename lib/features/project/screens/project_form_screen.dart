@@ -4,7 +4,7 @@ import 'package:provider/provider.dart';
 import '../../../shared/models/project_model.dart';
 import '../../../shared/models/employee_model.dart';
 import '../../../providers/enhanced_project_provider.dart';
-import '../../../providers/simple_enhanced_employee_provider.dart';
+import '../../../features/employee/providers/enhanced_employee_provider.dart';
 
 class ProjectFormScreen extends StatefulWidget {
   final Project? project;

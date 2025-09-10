@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../auth/providers/auth_provider.dart';
-import '../../employee/screens/employee_list_screen.dart';
-import '../../project/screens/project_list_screen.dart';
+import '../../employee/screens/employee_list_screen_wrapper.dart';
+import '../../project/screens/project_list_screen_wrapper.dart';
 import '../../timesheet/screens/timesheet_list_screen.dart';
 import '../../timesheet/providers/timesheet_provider.dart';
 import '../../customer/screens/customer_list_screen.dart';
@@ -25,8 +25,8 @@ class _MainDashboardScreenState extends State<MainDashboardScreen> {
 
   final List<Widget> _screens = [
     const DashboardHomeScreen(),
-    const EmployeeListScreen(),
-    const ProjectListScreen(),
+    const EmployeeListScreenWrapper(),
+    const ProjectListScreenWrapper(),
     const TimesheetListScreen(),
     const CustomerListScreen(),
     const ReportsScreen(),
