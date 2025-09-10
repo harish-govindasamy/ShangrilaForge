@@ -126,6 +126,8 @@ class _ProjectFormScreenState extends State<ProjectFormScreen> {
               decoration: const InputDecoration(
                 labelText: 'Project Name *',
                 border: OutlineInputBorder(),
+                contentPadding:
+                    EdgeInsets.symmetric(horizontal: 12, vertical: 12),
               ),
               validator: (value) {
                 if (value == null || value.trim().isEmpty) {
@@ -140,6 +142,8 @@ class _ProjectFormScreenState extends State<ProjectFormScreen> {
               decoration: const InputDecoration(
                 labelText: 'Job Code *',
                 border: OutlineInputBorder(),
+                contentPadding:
+                    EdgeInsets.symmetric(horizontal: 12, vertical: 12),
               ),
               validator: (value) {
                 if (value == null || value.trim().isEmpty) {
@@ -154,6 +158,8 @@ class _ProjectFormScreenState extends State<ProjectFormScreen> {
               decoration: const InputDecoration(
                 labelText: 'Customer ID *',
                 border: OutlineInputBorder(),
+                contentPadding:
+                    EdgeInsets.symmetric(horizontal: 12, vertical: 12),
               ),
               validator: (value) {
                 if (value == null || value.trim().isEmpty) {
@@ -168,6 +174,8 @@ class _ProjectFormScreenState extends State<ProjectFormScreen> {
               decoration: const InputDecoration(
                 labelText: 'Description',
                 border: OutlineInputBorder(),
+                contentPadding:
+                    EdgeInsets.symmetric(horizontal: 12, vertical: 12),
               ),
               maxLines: 3,
             ),
@@ -178,13 +186,15 @@ class _ProjectFormScreenState extends State<ProjectFormScreen> {
                 labelText: 'Estimated Hours',
                 border: OutlineInputBorder(),
                 suffixText: 'hrs',
+                contentPadding:
+                    EdgeInsets.symmetric(horizontal: 12, vertical: 12),
               ),
               keyboardType: TextInputType.number,
               validator: (value) {
                 if (value != null && value.isNotEmpty) {
                   final hours = double.tryParse(value);
                   if (hours == null || hours < 0) {
-                    return 'Please enter a valid number of hours';
+                    return 'Enter valid hours';
                   }
                 }
                 return null;
@@ -218,11 +228,15 @@ class _ProjectFormScreenState extends State<ProjectFormScreen> {
                     decoration: const InputDecoration(
                       labelText: 'Status',
                       border: OutlineInputBorder(),
+                      contentPadding:
+                          EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                     ),
+                    isExpanded: true, // Important to prevent overflow
                     items: ProjectStatus.values.map((status) {
                       return DropdownMenuItem(
                         value: status,
                         child: Row(
+                          mainAxisSize: MainAxisSize.min, // Use minimum space
                           children: [
                             Icon(
                               _getStatusIcon(status),
@@ -230,7 +244,12 @@ class _ProjectFormScreenState extends State<ProjectFormScreen> {
                               color: _getStatusColor(status),
                             ),
                             const SizedBox(width: 8),
-                            Text(_getStatusText(status)),
+                            Flexible(
+                              child: Text(
+                                _getStatusText(status),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
                           ],
                         ),
                       );
@@ -251,11 +270,15 @@ class _ProjectFormScreenState extends State<ProjectFormScreen> {
                     decoration: const InputDecoration(
                       labelText: 'Priority',
                       border: OutlineInputBorder(),
+                      contentPadding:
+                          EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                     ),
+                    isExpanded: true, // Important to prevent overflow
                     items: ProjectPriority.values.map((priority) {
                       return DropdownMenuItem(
                         value: priority,
                         child: Row(
+                          mainAxisSize: MainAxisSize.min, // Use minimum space
                           children: [
                             Icon(
                               _getPriorityIcon(priority),
@@ -263,7 +286,12 @@ class _ProjectFormScreenState extends State<ProjectFormScreen> {
                               color: _getPriorityColor(priority),
                             ),
                             const SizedBox(width: 8),
-                            Text(_getPriorityText(priority)),
+                            Flexible(
+                              child: Text(
+                                _getPriorityText(priority),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
                           ],
                         ),
                       );
@@ -309,15 +337,23 @@ class _ProjectFormScreenState extends State<ProjectFormScreen> {
                         labelText: 'Start Date',
                         border: OutlineInputBorder(),
                         suffixIcon: Icon(Icons.calendar_today),
+                        // Ensure content padding is appropriate
+                        contentPadding:
+                            EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                       ),
-                      child: Text(
-                        _startDate != null
-                            ? _formatDate(_startDate!)
-                            : 'Select start date',
-                        style: TextStyle(
-                          color: _startDate != null
-                              ? theme.textTheme.bodyLarge?.color
-                              : theme.hintColor,
+                      // Force child to respect the constraints of its parent
+                      child: FittedBox(
+                        fit: BoxFit.scaleDown,
+                        alignment: Alignment.centerLeft,
+                        child: Text(
+                          _startDate != null
+                              ? _formatDate(_startDate!)
+                              : 'Select date',
+                          style: TextStyle(
+                            color: _startDate != null
+                                ? theme.textTheme.bodyLarge?.color
+                                : theme.hintColor,
+                          ),
                         ),
                       ),
                     ),
@@ -332,15 +368,23 @@ class _ProjectFormScreenState extends State<ProjectFormScreen> {
                         labelText: 'End Date',
                         border: OutlineInputBorder(),
                         suffixIcon: Icon(Icons.calendar_today),
+                        // Ensure content padding is appropriate
+                        contentPadding:
+                            EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                       ),
-                      child: Text(
-                        _endDate != null
-                            ? _formatDate(_endDate!)
-                            : 'Select end date',
-                        style: TextStyle(
-                          color: _endDate != null
-                              ? theme.textTheme.bodyLarge?.color
-                              : theme.hintColor,
+                      // Force child to respect the constraints of its parent
+                      child: FittedBox(
+                        fit: BoxFit.scaleDown,
+                        alignment: Alignment.centerLeft,
+                        child: Text(
+                          _endDate != null
+                              ? _formatDate(_endDate!)
+                              : 'Select date',
+                          style: TextStyle(
+                            color: _endDate != null
+                                ? theme.textTheme.bodyLarge?.color
+                                : theme.hintColor,
+                          ),
                         ),
                       ),
                     ),
@@ -363,10 +407,13 @@ class _ProjectFormScreenState extends State<ProjectFormScreen> {
           children: [
             Row(
               children: [
-                Text(
-                  'Tags',
-                  style: theme.textTheme.titleLarge?.copyWith(
-                    fontWeight: FontWeight.bold,
+                Flexible(
+                  child: Text(
+                    'Tags',
+                    style: theme.textTheme.titleLarge?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ),
                 const Spacer(),
@@ -387,17 +434,24 @@ class _ProjectFormScreenState extends State<ProjectFormScreen> {
               )
             else
               Wrap(
-                spacing: 8,
-                runSpacing: 8,
+                spacing: 6,
+                runSpacing: 6,
                 children: _tags.map((tag) {
                   return Chip(
-                    label: Text(tag),
-                    deleteIcon: const Icon(Icons.close),
+                    materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    labelStyle: const TextStyle(fontSize: 12), // Smaller font
+                    label: Text(
+                      tag,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    deleteIcon:
+                        const Icon(Icons.close, size: 16), // Smaller icon
                     onDeleted: () {
                       setState(() {
                         _tags.remove(tag);
                       });
                     },
+                    visualDensity: VisualDensity.compact, // More compact layout
                   );
                 }).toList(),
               ),
@@ -416,17 +470,20 @@ class _ProjectFormScreenState extends State<ProjectFormScreen> {
           children: [
             Row(
               children: [
-                Text(
-                  'Assigned Employees',
-                  style: theme.textTheme.titleLarge?.copyWith(
-                    fontWeight: FontWeight.bold,
+                Flexible(
+                  child: Text(
+                    'Assigned Employees',
+                    style: theme.textTheme.titleLarge?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ),
                 const Spacer(),
                 TextButton.icon(
                   onPressed: _showAssignEmployeeDialog,
                   icon: const Icon(Icons.person_add),
-                  label: const Text('Assign Employee'),
+                  label: const Text('Assign'),
                 ),
               ],
             ),
@@ -440,8 +497,8 @@ class _ProjectFormScreenState extends State<ProjectFormScreen> {
               )
             else
               Wrap(
-                spacing: 8,
-                runSpacing: 8,
+                spacing: 6, // Reduced spacing
+                runSpacing: 6, // Reduced spacing
                 children: _assignedEmployeeIds.map((employeeId) {
                   final employeeProvider =
                       context.watch<EnhancedEmployeeProvider>();
@@ -479,28 +536,36 @@ class _ProjectFormScreenState extends State<ProjectFormScreen> {
                   );
 
                   return Chip(
+                    materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
                     avatar: CircleAvatar(
                       backgroundColor: Colors.blue,
+                      radius: 12, // Smaller radius
                       child: Text(
                         employee.empName.isNotEmpty
                             ? employee.empName.substring(0, 1).toUpperCase()
                             : employeeId.substring(0, 1).toUpperCase(),
                         style: const TextStyle(
                           color: Colors.white,
-                          fontSize: 12,
+                          fontSize: 10, // Smaller font
                           fontWeight: FontWeight.bold,
                         ),
                       ),
                     ),
-                    label: Text(employee.empName.isNotEmpty
-                        ? employee.empName
-                        : 'Employee: $employeeId'),
-                    deleteIcon: const Icon(Icons.close),
+                    labelStyle: const TextStyle(fontSize: 12), // Smaller font
+                    label: Text(
+                      employee.empName.isNotEmpty
+                          ? employee.empName
+                          : 'Emp: $employeeId',
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    deleteIcon:
+                        const Icon(Icons.close, size: 16), // Smaller icon
                     onDeleted: () {
                       setState(() {
                         _assignedEmployeeIds.remove(employeeId);
                       });
                     },
+                    visualDensity: VisualDensity.compact, // More compact layout
                   );
                 }).toList(),
               ),
