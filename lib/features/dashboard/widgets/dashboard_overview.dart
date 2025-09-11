@@ -305,6 +305,7 @@ class _DashboardOverviewWidgetState extends State<DashboardOverviewWidget> {
 
   // Navigate to a specific section
   void _navigateToSection(String section) {
+<<<<<<< HEAD
     // Map section to route
     String route = '';
 
@@ -342,6 +343,66 @@ class _DashboardOverviewWidgetState extends State<DashboardOverviewWidget> {
 
     // Navigate to the route
     Navigator.of(context).pushNamed(route);
+=======
+    // Get the corresponding title based on the section
+    String title = '';
+    // We'll need these routes later when implementing navigation
+    // String route = '';
+
+    switch (section) {
+      case 'employees':
+        // route = '/employees';
+        title = 'Employees';
+        break;
+      case 'projects':
+        // route = '/projects';
+        title = 'Projects';
+        break;
+      case 'approvals':
+        // route = '/approvals';
+        title = 'Pending Approvals';
+        break;
+      case 'revenue':
+        // route = '/finance/revenue';
+        title = 'Revenue';
+        break;
+      case 'team':
+        // route = '/team';
+        title = 'Team Members';
+        break;
+      case 'reviews':
+        // route = '/reviews';
+        title = 'Pending Reviews';
+        break;
+      case 'hours':
+        // route = '/hours';
+        title = 'Hours';
+        break;
+      case 'timesheets':
+        // route = '/timesheets';
+        title = 'Timesheets';
+        break;
+      case 'total_hours':
+        // route = '/hours/total';
+        title = 'Total Hours';
+        break;
+      default:
+        // route = '/dashboard';
+        title = 'Dashboard';
+    }
+
+    // For now, show a snackbar since the routes aren't implemented yet
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Navigating to $title...'),
+        behavior: SnackBarBehavior.floating,
+        duration: const Duration(seconds: 2),
+      ),
+    );
+
+    // Uncomment this when routes are implemented:
+    // Navigator.of(context).pushNamed(route);
+>>>>>>> fa182ade0bba8505d68c4b285e48c5684a4446f5
   }
 
   Widget _buildStatCard(StatCard card) {

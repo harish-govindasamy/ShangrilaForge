@@ -371,6 +371,7 @@ class _RecentActivitiesWidgetState extends State<RecentActivitiesWidget> {
 
   // Take action based on activity type
   void _takeActionOn(Activity activity) {
+<<<<<<< HEAD
     String route = '';
     String id = activity.id; // In a real app, this would be a meaningful ID
 
@@ -393,6 +394,26 @@ class _RecentActivitiesWidgetState extends State<RecentActivitiesWidget> {
 
     // Navigate to the appropriate route with the ID
     Navigator.of(context).pushNamed(route, arguments: id);
+=======
+    String message = 'Navigating to ';
+
+    if (activity.icon == Icons.access_time) {
+      message += 'timesheet details...';
+    } else if (activity.icon == Icons.work) {
+      message += 'project details...';
+    } else if (activity.icon == Icons.chat) {
+      message += 'comments section...';
+    } else {
+      message += 'details page...';
+    }
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
+>>>>>>> fa182ade0bba8505d68c4b285e48c5684a4446f5
   }
 
   // Show all activities in a separate view
