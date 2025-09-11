@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../../../core/services/service_provider.dart';
+import '../../../core/navigation/app_router.dart';
+import '../../../shared/enums/user_role.dart';
 import '../../auth/providers/auth_provider.dart';
 import '../../employee/screens/employee_list_screen_wrapper.dart';
 import '../../project/screens/project_list_screen_wrapper.dart';
@@ -11,7 +14,6 @@ import '../../reports/providers/report_provider.dart';
 import '../widgets/dashboard_overview.dart';
 import '../widgets/quick_actions.dart';
 import '../widgets/recent_activities.dart';
-import 'login_screen.dart';
 
 class MainDashboardScreen extends StatefulWidget {
   const MainDashboardScreen({super.key});
@@ -161,87 +163,138 @@ class DashboardHomeScreen extends StatelessWidget {
           ),
         ],
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Welcome Section
-            Consumer<AuthProvider>(
-              builder: (context, authProvider, child) {
-                final user = authProvider.user;
-                final employee = authProvider.employee;
+      body: SafeArea(
+        child: RefreshIndicator(
+          onRefresh: () async {
+            // Refresh dashboard data
+            await context.read<TimesheetProvider>().loadTimesheets();
+            await context.read<ReportProvider>().loadDashboardSummary();
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Dashboard refreshed'),
+                duration: Duration(seconds: 1),
+                backgroundColor: Color(0xFF2196F3),
+              ),
+            );
+          },
+          child: SingleChildScrollView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Welcome Section
+                Consumer<AuthProvider>(
+                  builder: (context, authProvider, child) {
+                    final user = authProvider.user;
+                    final employee = authProvider.employee;
 
-                return Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.all(20),
-                  decoration: BoxDecoration(
-                    gradient: const LinearGradient(
-                      colors: [Color(0xFF2196F3), Color(0xFF1976D2)],
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                    ),
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Welcome back,',
-                        style: TextStyle(
-                          fontSize: 16,
-                          color: Colors.white.withValues(alpha: 0.9 * 255),
+                    return Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(20),
+                      decoration: BoxDecoration(
+                        gradient: const LinearGradient(
+                          colors: [Color(0xFF2196F3), Color(0xFF1976D2)],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
                         ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        employee?.empName ?? user?.userName ?? 'User',
-                        style: const TextStyle(
-                          fontSize: 24,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 6,
-                        ),
-                        decoration: BoxDecoration(
-                          color: Colors.white.withValues(alpha: 0.2 * 255),
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                        child: Text(
-                          _getRoleDisplayName(user?.role),
-                          style: const TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w600,
-                            color: Colors.white,
+                        borderRadius: BorderRadius.circular(16),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.blue.withOpacity(0.2),
+                            blurRadius: 10,
+                            offset: const Offset(0, 4),
                           ),
-                        ),
+                        ],
                       ),
-                    ],
-                  ),
-                );
-              },
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'Welcome back,',
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    color: Colors.white.withOpacity(0.9),
+                                  ),
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  employee?.empName ?? user?.userName ?? 'User',
+                                  style: const TextStyle(
+                                    fontSize: 24,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                                const SizedBox(height: 8),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 12,
+                                    vertical: 6,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white.withOpacity(0.2),
+                                    borderRadius: BorderRadius.circular(20),
+                                  ),
+                                  child: Text(
+                                    _getRoleDisplayName(user?.role),
+                                    style: const TextStyle(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w600,
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          CircleAvatar(
+                            radius: 30,
+                            backgroundColor: Colors.white.withOpacity(0.2),
+                            child: Text(
+                              employee != null && employee.empName.isNotEmpty
+                                  ? employee.empName[0].toUpperCase()
+                                  : (user != null && user.userName.isNotEmpty
+                                      ? user.userName[0].toUpperCase()
+                                      : 'U'),
+                              style: const TextStyle(
+                                fontSize: 24,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  },
+                ),
+
+                const SizedBox(height: 24),
+
+                // Summary Cards - Quick Overview
+                _buildSummaryCards(context),
+
+                const SizedBox(height: 24),
+
+                // Quick Actions
+                const QuickActionsWidget(),
+
+                const SizedBox(height: 24),
+
+                // Dashboard Overview
+                const DashboardOverviewWidget(),
+
+                const SizedBox(height: 24),
+
+                // Recent Activities
+                const RecentActivitiesWidget(),
+              ],
             ),
-
-            const SizedBox(height: 24),
-
-            // Quick Actions
-            const QuickActionsWidget(),
-
-            const SizedBox(height: 24),
-
-            // Dashboard Overview
-            const DashboardOverviewWidget(),
-
-            const SizedBox(height: 24),
-
-            // Recent Activities
-            const RecentActivitiesWidget(),
-          ],
+          ),
         ),
       ),
     );
@@ -258,6 +311,168 @@ class DashboardHomeScreen extends StatelessWidget {
       default:
         return 'User';
     }
+  }
+
+  Widget _buildSummaryCards(BuildContext context) {
+    return LayoutBuilder(builder: (context, constraints) {
+      // Use responsive layout based on screen width
+      final cardWidth = constraints.maxWidth > 600
+          ? (constraints.maxWidth - 32) / 4
+          : (constraints.maxWidth - 16) / 2;
+
+      return Wrap(
+        spacing: 16,
+        runSpacing: 16,
+        children: [
+          _buildSummaryCard(
+            title: 'Today',
+            value: '3',
+            subtitle: 'Tasks',
+            icon: Icons.task_alt,
+            color: Colors.teal,
+            width: cardWidth,
+            onTap: () => _navigateToSection(context, 'tasks'),
+          ),
+          _buildSummaryCard(
+            title: 'Projects',
+            value: '12',
+            subtitle: '2 due soon',
+            icon: Icons.work,
+            color: Colors.blue,
+            width: cardWidth,
+            onTap: () => _navigateToSection(context, 'projects'),
+          ),
+          _buildSummaryCard(
+            title: 'Team',
+            value: '24',
+            subtitle: 'Members',
+            icon: Icons.people,
+            color: Colors.purple,
+            width: cardWidth,
+            onTap: () => _navigateToSection(context, 'employees'),
+          ),
+          _buildSummaryCard(
+            title: 'Approvals',
+            value: '5',
+            subtitle: 'Pending',
+            icon: Icons.approval,
+            color: Colors.amber,
+            width: cardWidth,
+            onTap: () => _navigateToSection(context, 'approvals'),
+          ),
+        ],
+      );
+    });
+  }
+
+  Widget _buildSummaryCard({
+    required String title,
+    required String value,
+    required String subtitle,
+    required IconData icon,
+    required Color color,
+    required double width,
+    required VoidCallback onTap,
+  }) {
+    return Container(
+      width: width,
+      constraints: const BoxConstraints(minWidth: 140),
+      child: Card(
+        elevation: 2,
+        shadowColor: color.withOpacity(0.3),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(12),
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Icon(icon, color: color, size: 28),
+                    Text(
+                      value,
+                      style: TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                        color: color,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  title,
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
+                    color: Colors.grey[800],
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  subtitle,
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: Colors.grey[600],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _navigateToSection(BuildContext context, String section) {
+    // Map section to route
+    String route;
+
+    switch (section) {
+      case 'tasks':
+        route = AppRouter.timesheetsRoute;
+        break;
+      case 'projects':
+        route = AppRouter.projectsRoute;
+        break;
+      case 'employees':
+        route = AppRouter.employeesRoute;
+        break;
+      case 'approvals':
+        route = AppRouter.approvalsRoute;
+        break;
+      default:
+        route = AppRouter.dashboardRoute;
+    }
+
+    // Navigate to the route
+    Navigator.of(context).pushNamed(route);
+  }
+
+  Widget _buildApprovalItem(String title, String date, IconData icon) {
+    return ListTile(
+      leading: Icon(icon, color: Colors.amber),
+      title: Text(title),
+      subtitle: Text('Due: $date'),
+      trailing: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          IconButton(
+            icon: const Icon(Icons.check_circle_outline, color: Colors.green),
+            onPressed: () {},
+          ),
+          IconButton(
+            icon: const Icon(Icons.cancel_outlined, color: Colors.red),
+            onPressed: () {},
+          ),
+        ],
+      ),
+    );
   }
 
   Future<void> _handleLogout(BuildContext context) async {
@@ -278,8 +493,8 @@ class DashboardHomeScreen extends StatelessWidget {
               Navigator.of(context).pop();
               await authProvider.logout();
               if (context.mounted) {
-                Navigator.of(context).pushAndRemoveUntil(
-                  MaterialPageRoute(builder: (context) => const LoginScreen()),
+                Navigator.of(context).pushNamedAndRemoveUntil(
+                  AppRouter.loginRoute,
                   (route) => false,
                 );
               }

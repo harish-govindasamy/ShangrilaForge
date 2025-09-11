@@ -4,6 +4,8 @@ import 'package:provider/provider.dart';
 
 import 'core/network/api_service.dart';
 import 'core/services/provider_factory.dart';
+import 'core/services/service_provider.dart';
+import 'core/navigation/app_router.dart';
 import 'features/auth/auth_service.dart';
 import 'features/auth/providers/auth_provider.dart';
 import 'features/employee/providers/employee_provider.dart';
@@ -61,26 +63,29 @@ class ShangrilaEngineersApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => ReportProvider()),
         // Add other providers here as needed
       ],
-      child: Consumer<AuthProvider>(
-        builder: (context, authProvider, child) {
-          return MaterialApp(
-            title: AppConstants.appName,
-            debugShowCheckedModeBanner: false,
-            theme: ThemeData(
-              primarySwatch: Colors.blue,
-              primaryColor: const Color(0xFF2196F3),
-              scaffoldBackgroundColor: Colors.grey[50],
-              appBarTheme: const AppBarTheme(
-                backgroundColor: Colors.white,
-                foregroundColor: Colors.black,
-                elevation: 0,
-                centerTitle: true,
-                titleTextStyle: TextStyle(
-                  color: Colors.black,
-                  fontSize: 18,
-                  fontWeight: FontWeight.w600,
+      child: ServiceProvider.initialize(
+        child: Consumer<AuthProvider>(
+          builder: (context, authProvider, child) {
+            return MaterialApp(
+              title: AppConstants.appName,
+              debugShowCheckedModeBanner: false,
+              initialRoute: AppRouter.initialRoute,
+              onGenerateRoute: AppRouter.generateRoute,
+              theme: ThemeData(
+                primarySwatch: Colors.blue,
+                primaryColor: const Color(0xFF2196F3),
+                scaffoldBackgroundColor: Colors.grey[50],
+                appBarTheme: const AppBarTheme(
+                  backgroundColor: Colors.white,
+                  foregroundColor: Colors.black,
+                  elevation: 0,
+                  centerTitle: true,
+                  titleTextStyle: TextStyle(
+                    color: Colors.black,
+                    fontSize: 18,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
-              ),
               elevatedButtonTheme: ElevatedButtonThemeData(
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFF2196F3),
@@ -124,10 +129,10 @@ class ShangrilaEngineersApp extends StatelessWidget {
                 ),
               ),
               useMaterial3: true,
-            ),
-            home: const SplashScreen(),
-          );
-        },
+              home: const SplashScreen(),
+            );
+          }
+        ),
       ),
     );
   }
