@@ -237,68 +237,154 @@ class DashboardHomeScreen extends StatelessWidget {
                           ),
                         ],
                       ),
-                      child: Row(
-                        children: [
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  'Welcome back,',
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                    color: Colors.white.withValues(alpha: 0.9),
-                                  ),
-                                ),
-                                const SizedBox(height: 4),
-                                Text(
-                                  employee?.empName ?? user?.userName ?? 'User',
-                                  style: const TextStyle(
-                                    fontSize: 24,
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.white,
-                                  ),
-                                ),
-                                const SizedBox(height: 8),
-                                Container(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 12,
-                                    vertical: 6,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: Colors.white.withValues(alpha: 0.2),
-                                    borderRadius: BorderRadius.circular(20),
-                                  ),
-                                  child: Text(
-                                    _getRoleDisplayName(user?.role),
-                                    style: const TextStyle(
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.w600,
-                                      color: Colors.white,
+                      child: LayoutBuilder(
+                        builder: (context, constraints) {
+                          final isSmallScreen = constraints.maxWidth < 400;
+                          return isSmallScreen
+                              ? Column(
+                                  crossAxisAlignment: CrossAxisAlignment.center,
+                                  children: [
+                                    CircleAvatar(
+                                      radius: 25,
+                                      backgroundColor:
+                                          Colors.white.withValues(alpha: 0.2),
+                                      child: Text(
+                                        employee != null &&
+                                                employee.empName.isNotEmpty
+                                            ? employee.empName[0].toUpperCase()
+                                            : (user != null &&
+                                                    user.userName.isNotEmpty
+                                                ? user.userName[0].toUpperCase()
+                                                : 'U'),
+                                        style: const TextStyle(
+                                          fontSize: 20,
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.white,
+                                        ),
+                                      ),
                                     ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          CircleAvatar(
-                            radius: 30,
-                            backgroundColor:
-                                Colors.white.withValues(alpha: 0.2),
-                            child: Text(
-                              employee != null && employee.empName.isNotEmpty
-                                  ? employee.empName[0].toUpperCase()
-                                  : (user != null && user.userName.isNotEmpty
-                                      ? user.userName[0].toUpperCase()
-                                      : 'U'),
-                              style: const TextStyle(
-                                fontSize: 24,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.white,
-                              ),
-                            ),
-                          ),
-                        ],
+                                    const SizedBox(height: 12),
+                                    Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.center,
+                                      children: [
+                                        Text(
+                                          'Welcome back,',
+                                          style: TextStyle(
+                                            fontSize: 14,
+                                            color: Colors.white
+                                                .withValues(alpha: 0.9),
+                                          ),
+                                        ),
+                                        const SizedBox(height: 4),
+                                        Text(
+                                          employee?.empName ??
+                                              user?.userName ??
+                                              'User',
+                                          style: const TextStyle(
+                                            fontSize: 20,
+                                            fontWeight: FontWeight.bold,
+                                            color: Colors.white,
+                                          ),
+                                          textAlign: TextAlign.center,
+                                        ),
+                                        const SizedBox(height: 6),
+                                        Container(
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: 10,
+                                            vertical: 4,
+                                          ),
+                                          decoration: BoxDecoration(
+                                            color: Colors.white
+                                                .withValues(alpha: 0.2),
+                                            borderRadius:
+                                                BorderRadius.circular(15),
+                                          ),
+                                          child: Text(
+                                            _getRoleDisplayName(user?.role),
+                                            style: const TextStyle(
+                                              fontSize: 11,
+                                              fontWeight: FontWeight.w600,
+                                              color: Colors.white,
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ],
+                                )
+                              : Row(
+                                  children: [
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            'Welcome back,',
+                                            style: TextStyle(
+                                              fontSize: 16,
+                                              color: Colors.white
+                                                  .withValues(alpha: 0.9),
+                                            ),
+                                          ),
+                                          const SizedBox(height: 4),
+                                          Text(
+                                            employee?.empName ??
+                                                user?.userName ??
+                                                'User',
+                                            style: const TextStyle(
+                                              fontSize: 24,
+                                              fontWeight: FontWeight.bold,
+                                              color: Colors.white,
+                                            ),
+                                          ),
+                                          const SizedBox(height: 8),
+                                          Container(
+                                            padding: const EdgeInsets.symmetric(
+                                              horizontal: 12,
+                                              vertical: 6,
+                                            ),
+                                            decoration: BoxDecoration(
+                                              color: Colors.white
+                                                  .withValues(alpha: 0.2),
+                                              borderRadius:
+                                                  BorderRadius.circular(20),
+                                            ),
+                                            child: Text(
+                                              _getRoleDisplayName(user?.role),
+                                              style: const TextStyle(
+                                                fontSize: 12,
+                                                fontWeight: FontWeight.w600,
+                                                color: Colors.white,
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                    CircleAvatar(
+                                      radius: 30,
+                                      backgroundColor:
+                                          Colors.white.withValues(alpha: 0.2),
+                                      child: Text(
+                                        employee != null &&
+                                                employee.empName.isNotEmpty
+                                            ? employee.empName[0].toUpperCase()
+                                            : (user != null &&
+                                                    user.userName.isNotEmpty
+                                                ? user.userName[0].toUpperCase()
+                                                : 'U'),
+                                        style: const TextStyle(
+                                          fontSize: 24,
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.white,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                );
+                        },
                       ),
                     );
                   },
@@ -349,48 +435,95 @@ class DashboardHomeScreen extends StatelessWidget {
     Map<String, dynamic> dashboardMetrics,
     Map<String, dynamic> timesheetMetrics,
   ) {
-    return Container(
-      padding: const EdgeInsets.symmetric(vertical: 8),
-      child: Row(
-        children: [
-          Expanded(
-            child: _buildEnhancedSummaryCard(
-              title: 'Active Projects',
-              value: '${dashboardMetrics['activeProjects'] ?? 8}',
-              subtitle: '${dashboardMetrics['totalProjects'] ?? 12} total',
-              icon: Icons.business,
-              color: Colors.blue,
-              trend: '+12%',
-              isPositive: true,
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        // Use responsive layout - single column on small screens, row on larger screens
+        final isSmallScreen = constraints.maxWidth < 600;
+
+        if (isSmallScreen) {
+          // Single column layout for small screens
+          return Column(
+            children: [
+              _buildEnhancedSummaryCard(
+                title: 'Active Projects',
+                value: '${dashboardMetrics['activeProjects'] ?? 8}',
+                subtitle: '${dashboardMetrics['totalProjects'] ?? 12} total',
+                icon: Icons.business,
+                color: Colors.blue,
+                trend: '+12%',
+                isPositive: true,
+              ),
+              const SizedBox(height: 12),
+              _buildEnhancedSummaryCard(
+                title: 'Pending Tasks',
+                value: '${timesheetMetrics['pendingCount'] ?? 12}',
+                subtitle: 'Need review',
+                icon: Icons.assignment,
+                color: Colors.orange,
+                trend: '-5%',
+                isPositive: false,
+              ),
+              const SizedBox(height: 12),
+              _buildEnhancedSummaryCard(
+                title: 'Team Hours',
+                value:
+                    '${(timesheetMetrics['totalHours'] ?? 240.0).toStringAsFixed(0)}h',
+                subtitle: 'This week',
+                icon: Icons.access_time,
+                color: Colors.green,
+                trend: '+8%',
+                isPositive: true,
+              ),
+            ],
+          );
+        } else {
+          // Row layout for larger screens
+          return Container(
+            padding: const EdgeInsets.symmetric(vertical: 8),
+            child: Row(
+              children: [
+                Expanded(
+                  child: _buildEnhancedSummaryCard(
+                    title: 'Active Projects',
+                    value: '${dashboardMetrics['activeProjects'] ?? 8}',
+                    subtitle:
+                        '${dashboardMetrics['totalProjects'] ?? 12} total',
+                    icon: Icons.business,
+                    color: Colors.blue,
+                    trend: '+12%',
+                    isPositive: true,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: _buildEnhancedSummaryCard(
+                    title: 'Pending Tasks',
+                    value: '${timesheetMetrics['pendingCount'] ?? 12}',
+                    subtitle: 'Need review',
+                    icon: Icons.assignment,
+                    color: Colors.orange,
+                    trend: '-5%',
+                    isPositive: false,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: _buildEnhancedSummaryCard(
+                    title: 'Team Hours',
+                    value:
+                        '${(timesheetMetrics['totalHours'] ?? 240.0).toStringAsFixed(0)}h',
+                    subtitle: 'This week',
+                    icon: Icons.access_time,
+                    color: Colors.green,
+                    trend: '+8%',
+                    isPositive: true,
+                  ),
+                ),
+              ],
             ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: _buildEnhancedSummaryCard(
-              title: 'Pending Tasks',
-              value: '${timesheetMetrics['pendingCount'] ?? 12}',
-              subtitle: 'Need review',
-              icon: Icons.assignment,
-              color: Colors.orange,
-              trend: '-5%',
-              isPositive: false,
-            ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: _buildEnhancedSummaryCard(
-              title: 'Team Hours',
-              value:
-                  '${(timesheetMetrics['totalHours'] ?? 240.0).toStringAsFixed(0)}h',
-              subtitle: 'This week',
-              icon: Icons.access_time,
-              color: Colors.green,
-              trend: '+8%',
-              isPositive: true,
-            ),
-          ),
-        ],
-      ),
+          );
+        }
+      },
     );
   }
 

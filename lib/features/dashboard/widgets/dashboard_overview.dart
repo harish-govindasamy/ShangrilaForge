@@ -92,7 +92,7 @@ class _DashboardOverviewWidgetState extends State<DashboardOverviewWidget> {
                   'Last updated: ${_getFormattedUpdateTime()}',
                   style: TextStyle(
                     fontSize: 12,
-                    color: Colors.grey[600],
+                    color: Colors.grey.withValues(alpha: 0.6),
                     fontStyle: FontStyle.italic,
                   ),
                 ),
@@ -360,8 +360,8 @@ class _DashboardOverviewWidgetState extends State<DashboardOverviewWidget> {
             borderRadius: BorderRadius.circular(12),
             gradient: LinearGradient(
               colors: [
-                card.color.withAlpha(25),
-                card.color.withAlpha(12),
+                card.color.withValues(alpha: 0.1),
+                card.color.withValues(alpha: 0.05),
               ],
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
@@ -378,7 +378,7 @@ class _DashboardOverviewWidgetState extends State<DashboardOverviewWidget> {
                   Container(
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
-                      color: card.color.withAlpha(25),
+                      color: card.color.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Icon(

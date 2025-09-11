@@ -58,7 +58,7 @@ class DashboardScreen extends StatelessWidget {
               Text(
                 'Here\'s what\'s happening today',
                 style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                      color: Colors.grey[600],
+                      color: Colors.grey.withValues(alpha: 0.6),
                     ),
               ),
               const SizedBox(height: 24),
@@ -282,7 +282,7 @@ class _StatCard extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: color.withAlpha(25),
+          color: color.withValues(alpha: 0.1),
           borderRadius: BorderRadius.circular(8),
         ),
         child: Row(
@@ -300,7 +300,7 @@ class _StatCard extends StatelessWidget {
                   Text(
                     title,
                     style: TextStyle(
-                      color: Colors.grey[700],
+                      color: Colors.grey.withValues(alpha: 0.7),
                       fontSize: 14,
                     ),
                   ),
@@ -308,7 +308,7 @@ class _StatCard extends StatelessWidget {
                   Text(
                     value,
                     style: TextStyle(
-                      color: Colors.grey[900],
+                      color: Colors.grey.withValues(alpha: 0.9),
                       fontSize: 20,
                       fontWeight: FontWeight.bold,
                     ),
@@ -345,7 +345,7 @@ class _ActionCard extends StatelessWidget {
         width: 140,
         padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
         decoration: BoxDecoration(
-          color: color.withAlpha(25),
+          color: color.withValues(alpha: 0.1),
           borderRadius: BorderRadius.circular(8),
         ),
         child: Column(
@@ -361,7 +361,7 @@ class _ActionCard extends StatelessWidget {
               title,
               textAlign: TextAlign.center,
               style: TextStyle(
-                color: Colors.grey[900],
+                color: Colors.grey.withValues(alpha: 0.9),
                 fontWeight: FontWeight.w500,
               ),
             ),
@@ -397,7 +397,7 @@ class _ActivityItem extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
-              color: color.withAlpha(25),
+              color: color.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(8),
             ),
             child: Icon(
@@ -414,7 +414,7 @@ class _ActivityItem extends StatelessWidget {
                 Text(
                   title,
                   style: TextStyle(
-                    color: Colors.grey[900],
+                    color: Colors.grey.withValues(alpha: 0.9),
                     fontWeight: FontWeight.w600,
                     fontSize: 15,
                   ),
@@ -423,7 +423,7 @@ class _ActivityItem extends StatelessWidget {
                 Text(
                   description,
                   style: TextStyle(
-                    color: Colors.grey[600],
+                    color: Colors.grey.withValues(alpha: 0.6),
                     fontSize: 13,
                   ),
                 ),
@@ -431,7 +431,7 @@ class _ActivityItem extends StatelessWidget {
                 Text(
                   time,
                   style: TextStyle(
-                    color: Colors.grey[500],
+                    color: Colors.grey.withValues(alpha: 0.5),
                     fontSize: 12,
                   ),
                 ),

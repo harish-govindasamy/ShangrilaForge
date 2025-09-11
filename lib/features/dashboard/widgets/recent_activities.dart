@@ -177,79 +177,88 @@ class _RecentActivitiesWidgetState extends State<RecentActivitiesWidget> {
       borderRadius: BorderRadius.circular(8),
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 10),
-        child: Row(
-          children: [
-            // Avatar or Icon Container
-            activity.avatarUrl != null
-                ? _buildAvatar(activity)
-                : _buildIconContainer(activity),
-            const SizedBox(width: 12),
-            // Activity content
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            final isSmallScreen = constraints.maxWidth < 400;
+            return Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Avatar or Icon Container
+                activity.avatarUrl != null
+                    ? _buildAvatar(activity)
+                    : _buildIconContainer(activity),
+                const SizedBox(width: 12),
+                // Activity content
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Expanded(
-                        child: Text(
-                          activity.title,
-                          style: TextStyle(
-                            fontSize: 14,
-                            fontWeight: activity.isUnread
-                                ? FontWeight.w600
-                                : FontWeight.w500,
-                            color: Colors.black87,
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              activity.title,
+                              style: TextStyle(
+                                fontSize: 14,
+                                fontWeight: activity.isUnread
+                                    ? FontWeight.w600
+                                    : FontWeight.w500,
+                                color: Colors.black87,
+                              ),
+                              overflow: TextOverflow.ellipsis,
+                              maxLines: 1,
+                            ),
                           ),
-                          overflow: TextOverflow.ellipsis,
-                          maxLines: 1,
-                        ),
+                          if (activity.isUnread)
+                            Container(
+                              width: 8,
+                              height: 8,
+                              margin: const EdgeInsets.only(left: 8),
+                              decoration: const BoxDecoration(
+                                color: Colors.blue,
+                                shape: BoxShape.circle,
+                              ),
+                            ),
+                        ],
                       ),
-                      if (activity.isUnread)
-                        Container(
-                          width: 8,
-                          height: 8,
-                          decoration: const BoxDecoration(
-                            color: Colors.blue,
-                            shape: BoxShape.circle,
-                          ),
+                      const SizedBox(height: 4),
+                      Text(
+                        activity.subtitle,
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Colors.grey.withValues(alpha: 0.6),
                         ),
+                        overflow: TextOverflow.ellipsis,
+                        maxLines: 1,
+                      ),
                     ],
                   ),
-                  const SizedBox(height: 4),
-                  Text(
-                    activity.subtitle,
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: Colors.grey[600],
-                    ),
-                    overflow: TextOverflow.ellipsis,
-                    maxLines: 1,
+                ),
+                if (!isSmallScreen) ...[
+                  const SizedBox(width: 8),
+                  // Time indicator
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Text(
+                        activity.time,
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Colors.grey.withValues(alpha: 0.5),
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Icon(
+                        Icons.chevron_right,
+                        size: 16,
+                        color: Colors.grey.withValues(alpha: 0.4),
+                      ),
+                    ],
                   ),
                 ],
-              ),
-            ),
-            const SizedBox(width: 8),
-            // Time indicator
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                Text(
-                  activity.time,
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: Colors.grey[500],
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Icon(
-                  Icons.chevron_right,
-                  size: 16,
-                  color: Colors.grey[400],
-                ),
               ],
-            ),
-          ],
+            );
+          },
         ),
       ),
     );
@@ -259,7 +268,7 @@ class _RecentActivitiesWidgetState extends State<RecentActivitiesWidget> {
     return Container(
       padding: const EdgeInsets.all(8),
       decoration: BoxDecoration(
-        color: activity.color.withAlpha(25),
+        color: activity.color.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(8),
       ),
       child: Icon(
@@ -273,8 +282,32 @@ class _RecentActivitiesWidgetState extends State<RecentActivitiesWidget> {
   Widget _buildAvatar(Activity activity) {
     return CircleAvatar(
       radius: 18,
-      backgroundImage: NetworkImage(activity.avatarUrl!),
-      backgroundColor: activity.color.withAlpha(50),
+      backgroundColor: activity.color.withValues(alpha: 0.2),
+      child: ClipOval(
+        child: FadeInImage.assetNetwork(
+          placeholder: '', // You can add a placeholder asset here
+          image: activity.avatarUrl!,
+          fit: BoxFit.cover,
+          width: 36,
+          height: 36,
+          imageErrorBuilder: (context, error, stackTrace) {
+            // Fallback to icon if image fails to load
+            return Container(
+              width: 36,
+              height: 36,
+              decoration: BoxDecoration(
+                color: activity.color.withValues(alpha: 0.2),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                activity.icon,
+                color: activity.color,
+                size: 18,
+              ),
+            );
+          },
+        ),
+      ),
     );
   }
 
@@ -309,7 +342,31 @@ class _RecentActivitiesWidgetState extends State<RecentActivitiesWidget> {
               Center(
                 child: CircleAvatar(
                   radius: 30,
-                  backgroundImage: NetworkImage(activity.avatarUrl!),
+                  backgroundColor: activity.color.withValues(alpha: 0.2),
+                  child: ClipOval(
+                    child: FadeInImage.assetNetwork(
+                      placeholder: '',
+                      image: activity.avatarUrl!,
+                      fit: BoxFit.cover,
+                      width: 60,
+                      height: 60,
+                      imageErrorBuilder: (context, error, stackTrace) {
+                        return Container(
+                          width: 60,
+                          height: 60,
+                          decoration: BoxDecoration(
+                            color: activity.color.withValues(alpha: 0.2),
+                            shape: BoxShape.circle,
+                          ),
+                          child: Icon(
+                            activity.icon,
+                            color: activity.color,
+                            size: 30,
+                          ),
+                        );
+                      },
+                    ),
+                  ),
                 ),
               ),
             const SizedBox(height: 16),
@@ -322,7 +379,7 @@ class _RecentActivitiesWidgetState extends State<RecentActivitiesWidget> {
               'Timestamp: ${activity.time}',
               style: TextStyle(
                 fontSize: 14,
-                color: Colors.grey[600],
+                color: Colors.grey.withValues(alpha: 0.6),
               ),
             ),
             const SizedBox(height: 8),
@@ -330,7 +387,7 @@ class _RecentActivitiesWidgetState extends State<RecentActivitiesWidget> {
               'Activity ID: ${activity.id}',
               style: TextStyle(
                 fontSize: 12,
-                color: Colors.grey[500],
+                color: Colors.grey.withValues(alpha: 0.5),
               ),
             ),
           ],
