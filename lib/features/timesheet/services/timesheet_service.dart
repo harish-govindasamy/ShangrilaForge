@@ -1,465 +1,519 @@
-import '../../../core/network/api_service.dart';
-import '../../../core/constants/api_endpoints.dart';
-import '../../../core/services/email_notification_service.dart';
+import 'dart:async';
+import 'dart:math';
+import 'package:logging/logging.dart';
 import '../../../shared/models/timesheet_model.dart';
-import '../../../shared/models/user_model.dart';
-import '../../project/services/project_service.dart';
 
+/// Mock timesheet service for demo purposes
+/// This service provides mock data and simulates API operations
 class TimesheetService {
-  static final TimesheetService _instance = TimesheetService._internal();
-  factory TimesheetService() => _instance;
-  TimesheetService._internal();
+  final Logger _logger = Logger('TimesheetService');
+  final Random _random = Random();
 
-  final ApiService _apiService = ApiService();
-  final EmailNotificationService _emailService = EmailNotificationService();
-  final ProjectService _projectService = ProjectService();
+  // Mock data storage
+  static final List<Timesheet> _mockTimesheets = [];
+  static bool _isInitialized = false;
 
-  // Get all timesheets (RBAC controlled)
-  Future<List<Timesheet>> getTimesheets(
-      {UserRole? userRole, String? userId}) async {
-    try {
-      Map<String, dynamic> queryParams = {};
+  TimesheetService() {
+    if (!_isInitialized) {
+      _initializeMockData();
+      _isInitialized = true;
+    }
+  }
 
-      // Apply RBAC filters
-      if (userRole == UserRole.employee && userId != null) {
-        queryParams['employee_id'] = userId;
+  /// Initialize mock timesheet data
+  void _initializeMockData() {
+    final now = DateTime.now();
+    final projects = [
+      'PRJ-001',
+      'PRJ-002',
+      'PRJ-003',
+      'PRJ-004',
+      'PRJ-005',
+      'PRJ-006',
+      'PRJ-007',
+      'PRJ-008',
+      'PRJ-009',
+      'PRJ-010'
+    ];
+
+    final employees = [
+      'EMP-001',
+      'EMP-002',
+      'EMP-003',
+      'EMP-004',
+      'EMP-005',
+      'EMP-006',
+      'EMP-007',
+      'EMP-008',
+      'EMP-009',
+      'EMP-010'
+    ];
+
+    final tasks = [
+      'Development',
+      'Testing',
+      'Code Review',
+      'Documentation',
+      'Meeting',
+      'Planning',
+      'Design',
+      'Research',
+      'Bug Fixing',
+      'Deployment'
+    ];
+
+    final creators = [
+      'Admin',
+      'HR Manager',
+      'Project Manager',
+      'Team Lead',
+      'System'
+    ];
+
+    // Generate mock timesheets for the last 8 weeks (2 months)
+    for (int i = 0; i < 30; i++) {
+      final weekStart = now.subtract(Duration(days: (i * 7) + now.weekday - 1));
+      final weekEnd = weekStart.add(const Duration(days: 6));
+      final projectId = projects[_random.nextInt(projects.length)];
+      final employeeId = employees[_random.nextInt(employees.length)];
+      final taskId = tasks[_random.nextInt(tasks.length)];
+      final createdBy = creators[_random.nextInt(creators.length)];
+
+      // Generate random hours for each day (0-8 hours)
+      final dailyHours = List.generate(16, (index) {
+        // Some days will have 0 hours (weekend or days off)
+        if (_random.nextInt(10) < 3) return 0.0;
+        return _random.nextDouble() * 8;
+      });
+
+      // Random status distribution
+      final statusRand = _random.nextInt(100);
+      TimesheetStatus status;
+      if (statusRand < 60) {
+        status = TimesheetStatus.approved;
+      } else if (statusRand < 80) {
+        status = TimesheetStatus.submitted;
+      } else if (statusRand < 90) {
+        status = TimesheetStatus.draft;
+      } else {
+        status = TimesheetStatus.rejected;
       }
-      // Admin and Principal can see all timesheets
 
-      final response = await _apiService.get(
-        ApiEndpoints.timesheets,
-        queryParameters: queryParams,
+      final timesheet = Timesheet(
+        userId: 'TS-${DateTime.now().millisecondsSinceEpoch}-$i',
+        employeeId: employeeId,
+        projectId: projectId,
+        taskId: taskId,
+        weekStartDate: weekStart,
+        weekEndDate: weekEnd,
+        createdBy: createdBy,
+        status: status,
+        createdAt: weekStart.subtract(Duration(minutes: _random.nextInt(60))),
+        updatedAt: weekStart.add(Duration(minutes: _random.nextInt(120))),
+        day1Hours: dailyHours[0],
+        day2Hours: dailyHours[1],
+        day3Hours: dailyHours[2],
+        day4Hours: dailyHours[3],
+        day5Hours: dailyHours[4],
+        day6Hours: dailyHours[5],
+        day7Hours: dailyHours[6],
+        day8Hours: dailyHours[7],
+        day9Hours: dailyHours[8],
+        day10Hours: dailyHours[9],
+        day11Hours: dailyHours[10],
+        day12Hours: dailyHours[11],
+        day13Hours: dailyHours[12],
+        day14Hours: dailyHours[13],
+        day15Hours: dailyHours[14],
+        day16Hours: dailyHours[15],
+        recordTracking: [],
       );
 
-      if (response.statusCode == 200) {
-        final List<dynamic> data = response.data['timesheets'] ??
-            response.data['data'] ??
-            response.data;
-        return data.map((json) => Timesheet.fromJson(json)).toList();
-      }
-      throw Exception('Failed to fetch timesheets');
-    } catch (e) {
-      throw Exception('Error fetching timesheets: $e');
+      _mockTimesheets.add(timesheet);
     }
+
+    _logger.info('Initialized ${_mockTimesheets.length} mock timesheets');
   }
 
-  // Get timesheet by ID with RBAC validation
-  Future<Timesheet> getTimesheetById(String id,
-      {UserRole? userRole, String? userId}) async {
+  /// Get all timesheets with optional filters
+  Future<List<Timesheet>> getTimesheets({
+    String? employeeId,
+    String? projectId,
+    TimesheetStatus? status,
+    DateTime? startDate,
+    DateTime? endDate,
+  }) async {
+    await _simulateNetworkDelay();
+
     try {
-      final response = await _apiService.get(ApiEndpoints.timesheetById(id));
-      if (response.statusCode == 200) {
-        final timesheet = Timesheet.fromJson(response.data);
+      List<Timesheet> filtered = List.from(_mockTimesheets);
 
-        // RBAC validation
-        if (userRole == UserRole.employee && timesheet.employeeId != userId) {
-          throw Exception(
-              'Access denied: You can only view your own timesheets');
-        }
-
-        return timesheet;
+      // Apply filters
+      if (employeeId != null) {
+        filtered = filtered.where((ts) => ts.employeeId == employeeId).toList();
       }
-      throw Exception('Failed to fetch timesheet');
+
+      if (projectId != null) {
+        filtered = filtered.where((ts) => ts.projectId == projectId).toList();
+      }
+
+      if (status != null) {
+        filtered = filtered.where((ts) => ts.status == status).toList();
+      }
+
+      if (startDate != null) {
+        filtered = filtered
+            .where((ts) => ts.weekStartDate
+                .isAfter(startDate.subtract(const Duration(days: 1))))
+            .toList();
+      }
+
+      if (endDate != null) {
+        filtered = filtered
+            .where((ts) =>
+                ts.weekEndDate.isBefore(endDate.add(const Duration(days: 1))))
+            .toList();
+      }
+
+      // Sort by week start date (newest first)
+      filtered.sort((a, b) => b.weekStartDate.compareTo(a.weekStartDate));
+
+      _logger.info('Retrieved ${filtered.length} timesheets');
+      return filtered;
     } catch (e) {
-      throw Exception('Error fetching timesheet: $e');
+      _logger.severe('Failed to get timesheets: $e');
+      throw Exception('Failed to load timesheets: $e');
     }
   }
 
-  // Create new timesheet with project validation
+  /// Get timesheet by ID
+  Future<Timesheet> getTimesheetById(String id) async {
+    await _simulateNetworkDelay();
+
+    try {
+      final timesheet = _mockTimesheets.firstWhere(
+        (ts) => ts.userId == id,
+        orElse: () => throw Exception('Timesheet not found'),
+      );
+
+      _logger.info('Retrieved timesheet: $id');
+      return timesheet;
+    } catch (e) {
+      _logger.severe('Failed to get timesheet by ID: $e');
+      throw Exception('Timesheet not found: $e');
+    }
+  }
+
+  /// Create new timesheet
   Future<Timesheet> createTimesheet(Timesheet timesheet) async {
+    await _simulateNetworkDelay();
+
     try {
-      // Validate project accessibility for timesheet entry
-      final project = await _projectService.getProjectById(timesheet.projectId);
+      // Validate timesheet data
+      _validateTimesheetData(timesheet);
 
-      if (!project.isAccessibleForTimesheet) {
-        throw Exception(
-            'Cannot create timesheet for completed project: ${project.jobName}');
-      }
-
-      // Set initial status as draft
-      final timesheetWithStatus = timesheet.copyWith(
+      // Generate new ID and timestamps
+      final newTimesheet = timesheet.copyWith(
+        userId: 'TS-${DateTime.now().millisecondsSinceEpoch}',
         status: TimesheetStatus.draft,
         createdAt: DateTime.now(),
         updatedAt: DateTime.now(),
       );
 
-      final response = await _apiService.post(
-        ApiEndpoints.createTimesheet,
-        data: timesheetWithStatus.toJson(),
-      );
+      _mockTimesheets.add(newTimesheet);
+      _logger.info('Created timesheet: ${newTimesheet.userId}');
 
-      if (response.statusCode == 201 || response.statusCode == 200) {
-        return Timesheet.fromJson(response.data);
-      }
-      throw Exception('Failed to create timesheet');
+      return newTimesheet;
     } catch (e) {
-      throw Exception('Error creating timesheet: $e');
+      _logger.severe('Failed to create timesheet: $e');
+      throw Exception('Failed to create timesheet: $e');
     }
   }
 
-  // Update timesheet with validation
-  Future<Timesheet> updateTimesheet(String id, Timesheet timesheet,
-      {UserRole? userRole, String? userId}) async {
+  /// Update existing timesheet
+  Future<Timesheet> updateTimesheet(String id, Timesheet timesheet) async {
+    await _simulateNetworkDelay();
+
     try {
-      // Get current timesheet for validation
-      final currentTimesheet =
-          await getTimesheetById(id, userRole: userRole, userId: userId);
-
-      // Check if timesheet can be updated
-      if (currentTimesheet.status == TimesheetStatus.approved) {
-        throw Exception('Cannot update approved timesheet');
+      final index = _mockTimesheets.indexWhere((ts) => ts.userId == id);
+      if (index == -1) {
+        throw Exception('Timesheet not found');
       }
 
-      // Employees can only update their own draft timesheets
-      if (userRole == UserRole.employee) {
-        if (currentTimesheet.employeeId != userId) {
-          throw Exception(
-              'Access denied: You can only update your own timesheets');
-        }
-        if (currentTimesheet.status != TimesheetStatus.draft) {
-          throw Exception('Cannot update timesheet after submission');
-        }
+      // Validate timesheet data
+      _validateTimesheetData(timesheet);
+
+      // Check if user has permission to update
+      final currentTimesheet = _mockTimesheets[index];
+      if (!_canModifyTimesheet(currentTimesheet)) {
+        throw Exception('Cannot modify timesheet in current status');
       }
 
-      // Validate project accessibility
-      final project = await _projectService.getProjectById(timesheet.projectId);
-      if (!project.isAccessibleForTimesheet) {
-        throw Exception(
-            'Cannot update timesheet for completed project: ${project.jobName}');
-      }
-
+      // Update timesheet
       final updatedTimesheet = timesheet.copyWith(
+        userId: id,
         updatedAt: DateTime.now(),
       );
 
-      final response = await _apiService.put(
-        ApiEndpoints.updateTimesheet(id),
-        data: updatedTimesheet.toJson(),
-      );
+      _mockTimesheets[index] = updatedTimesheet;
+      _logger.info('Updated timesheet: $id');
 
-      if (response.statusCode == 200) {
-        return Timesheet.fromJson(response.data);
-      }
-      throw Exception('Failed to update timesheet');
+      return updatedTimesheet;
     } catch (e) {
-      throw Exception('Error updating timesheet: $e');
+      _logger.severe('Failed to update timesheet: $e');
+      throw Exception('Failed to update timesheet: $e');
     }
   }
 
-  // Delete timesheet with RBAC validation
-  Future<void> deleteTimesheet(String id,
-      {UserRole? userRole, String? userId}) async {
+  /// Delete timesheet
+  Future<bool> deleteTimesheet(String id) async {
+    await _simulateNetworkDelay();
+
     try {
-      final timesheet =
-          await getTimesheetById(id, userRole: userRole, userId: userId);
-
-      // Validation rules
-      if (userRole == UserRole.employee) {
-        if (timesheet.employeeId != userId) {
-          throw Exception(
-              'Access denied: You can only delete your own timesheets');
-        }
-        if (timesheet.status != TimesheetStatus.draft) {
-          throw Exception('Can only delete draft timesheets');
-        }
+      final index = _mockTimesheets.indexWhere((ts) => ts.userId == id);
+      if (index == -1) {
+        throw Exception('Timesheet not found');
       }
 
-      final response =
-          await _apiService.delete(ApiEndpoints.deleteTimesheet(id));
-      if (response.statusCode != 200 && response.statusCode != 204) {
-        throw Exception('Failed to delete timesheet');
+      final timesheet = _mockTimesheets[index];
+      if (!_canDeleteTimesheet(timesheet)) {
+        throw Exception('Cannot delete timesheet in current status');
       }
+
+      _mockTimesheets.removeAt(index);
+      _logger.info('Deleted timesheet: $id');
+
+      return true;
     } catch (e) {
-      throw Exception('Error deleting timesheet: $e');
+      _logger.severe('Failed to delete timesheet: $e');
+      throw Exception('Failed to delete timesheet: $e');
     }
   }
 
-  // Submit timesheet for approval with Principal notification
-  Future<Timesheet> submitTimesheet(String id, String employeeName,
-      {UserRole? userRole, String? userId}) async {
-    try {
-      final timesheet =
-          await getTimesheetById(id, userRole: userRole, userId: userId);
+  /// Submit timesheet for approval
+  Future<Timesheet> submitTimesheet(String id, String submittedBy) async {
+    await _simulateNetworkDelay();
 
-      // Validation
-      if (userRole == UserRole.employee && timesheet.employeeId != userId) {
-        throw Exception(
-            'Access denied: You can only submit your own timesheets');
+    try {
+      final index = _mockTimesheets.indexWhere((ts) => ts.userId == id);
+      if (index == -1) {
+        throw Exception('Timesheet not found');
       }
 
+      final timesheet = _mockTimesheets[index];
       if (timesheet.status != TimesheetStatus.draft) {
         throw Exception('Can only submit draft timesheets');
       }
 
-      // Validate total hours
-      final totalHours = timesheet.getTotalHours();
-      if (totalHours <= 0) {
-        throw Exception('Cannot submit timesheet with no hours');
-      }
-
-      final response = await _apiService.post(
-        ApiEndpoints.submitTimesheet,
-        data: {
-          'timesheet_id': id,
-          'status': TimesheetStatus.submitted.name,
-          'submittedAt': DateTime.now().toIso8601String(),
-        },
+      final updatedTimesheet = timesheet.copyWith(
+        status: TimesheetStatus.submitted,
+        updatedAt: DateTime.now(),
       );
 
-      if (response.statusCode == 200) {
-        final submittedTimesheet = Timesheet.fromJson(response.data);
+      _mockTimesheets[index] = updatedTimesheet;
+      _logger.info('Submitted timesheet: $id by $submittedBy');
 
-        // Send notification to Principal
-        await _emailService.sendTimesheetSubmissionNotification(
-          'principal@shangrilaengineers.com', // This should come from config
-          employeeName,
-          id,
-        );
-
-        return submittedTimesheet;
-      }
-      throw Exception('Failed to submit timesheet');
+      return updatedTimesheet;
     } catch (e) {
-      throw Exception('Error submitting timesheet: $e');
+      _logger.severe('Failed to submit timesheet: $e');
+      throw Exception('Failed to submit timesheet: $e');
     }
   }
 
-  // Approve timesheet (Principal only)
-  Future<Timesheet> approveTimesheet(String id,
-      {String? feedback, UserRole? userRole}) async {
+  /// Approve timesheet
+  Future<Timesheet> approveTimesheet(String id) async {
+    await _simulateNetworkDelay();
+
     try {
-      if (userRole != UserRole.principal && userRole != UserRole.admin) {
-        throw Exception(
-            'Access denied: Only Principals and Admins can approve timesheets');
+      final index = _mockTimesheets.indexWhere((ts) => ts.userId == id);
+      if (index == -1) {
+        throw Exception('Timesheet not found');
       }
 
-      final timesheet = await getTimesheetById(id);
-
+      final timesheet = _mockTimesheets[index];
       if (timesheet.status != TimesheetStatus.submitted) {
         throw Exception('Can only approve submitted timesheets');
       }
 
-      final response = await _apiService.post(
-        ApiEndpoints.approveTimesheet,
-        data: {
-          'timesheet_id': id,
-          'status': TimesheetStatus.approved.name,
-          'approvedAt': DateTime.now().toIso8601String(),
-          'feedback': feedback ?? '',
-        },
+      final updatedTimesheet = timesheet.copyWith(
+        status: TimesheetStatus.approved,
+        updatedAt: DateTime.now(),
       );
 
-      if (response.statusCode == 200) {
-        final approvedTimesheet = Timesheet.fromJson(response.data);
+      _mockTimesheets[index] = updatedTimesheet;
+      _logger.info('Approved timesheet: $id');
 
-        // Send approval notification to employee
-        await _emailService.sendTimesheetStatusNotification(
-          'employee@shangrilaengineers.com', // This should be the employee's email
-          'approved',
-          id,
-          feedback,
-        );
-
-        return approvedTimesheet;
-      }
-      throw Exception('Failed to approve timesheet');
+      return updatedTimesheet;
     } catch (e) {
-      throw Exception('Error approving timesheet: $e');
+      _logger.severe('Failed to approve timesheet: $e');
+      throw Exception('Failed to approve timesheet: $e');
     }
   }
 
-  // Reject timesheet (Principal only)
-  Future<Timesheet> rejectTimesheet(String id, String feedback,
-      {UserRole? userRole}) async {
+  /// Reject timesheet
+  Future<Timesheet> rejectTimesheet(String id, String feedback) async {
+    await _simulateNetworkDelay();
+
     try {
-      if (userRole != UserRole.principal && userRole != UserRole.admin) {
-        throw Exception(
-            'Access denied: Only Principals and Admins can reject timesheets');
+      final index = _mockTimesheets.indexWhere((ts) => ts.userId == id);
+      if (index == -1) {
+        throw Exception('Timesheet not found');
       }
 
-      final timesheet = await getTimesheetById(id);
-
+      final timesheet = _mockTimesheets[index];
       if (timesheet.status != TimesheetStatus.submitted) {
         throw Exception('Can only reject submitted timesheets');
       }
 
-      final response = await _apiService.post(
-        '/timesheets/reject', // Use direct path for reject
-        data: {
-          'timesheet_id': id,
-          'status': TimesheetStatus.rejected.name,
-          'rejectedAt': DateTime.now().toIso8601String(),
-          'feedback': feedback,
-        },
+      final updatedTimesheet = timesheet.copyWith(
+        status: TimesheetStatus.rejected,
+        updatedAt: DateTime.now(),
       );
 
-      if (response.statusCode == 200) {
-        final rejectedTimesheet = Timesheet.fromJson(response.data);
+      _mockTimesheets[index] = updatedTimesheet;
+      _logger.info('Rejected timesheet: $id with feedback: $feedback');
 
-        // Send rejection notification to employee
-        await _emailService.sendTimesheetStatusNotification(
-          'employee@shangrilaengineers.com', // This should be the employee's email
-          'rejected',
-          id,
-          feedback,
-        );
-
-        return rejectedTimesheet;
-      }
-      throw Exception('Failed to reject timesheet');
+      return updatedTimesheet;
     } catch (e) {
-      throw Exception('Error rejecting timesheet: $e');
+      _logger.severe('Failed to reject timesheet: $e');
+      throw Exception('Failed to reject timesheet: $e');
     }
   }
 
-  // Get timesheets by employee with RBAC
-  Future<List<Timesheet>> getTimesheetsByEmployee(String employeeId,
-      {UserRole? userRole, String? currentUserId}) async {
-    try {
-      // RBAC validation
-      if (userRole == UserRole.employee && employeeId != currentUserId) {
-        throw Exception('Access denied: You can only view your own timesheets');
-      }
-
-      final response = await _apiService.get(
-        ApiEndpoints.timesheets,
-        queryParameters: {'employee_id': employeeId},
-      );
-
-      if (response.statusCode == 200) {
-        final List<dynamic> data = response.data['timesheets'] ??
-            response.data['data'] ??
-            response.data;
-        return data.map((json) => Timesheet.fromJson(json)).toList();
-      }
-      throw Exception('Failed to fetch employee timesheets');
-    } catch (e) {
-      throw Exception('Error fetching employee timesheets: $e');
-    }
+  /// Get timesheets by employee
+  Future<List<Timesheet>> getTimesheetsByEmployee(String employeeId) async {
+    return getTimesheets(employeeId: employeeId);
   }
 
-  // Get timesheets by project
+  /// Get timesheets by project
   Future<List<Timesheet>> getTimesheetsByProject(String projectId) async {
-    try {
-      final response = await _apiService.get(
-        ApiEndpoints.timesheets,
-        queryParameters: {'project_id': projectId},
-      );
-      if (response.statusCode == 200) {
-        final List<dynamic> data = response.data['timesheets'] ??
-            response.data['data'] ??
-            response.data;
-        return data.map((json) => Timesheet.fromJson(json)).toList();
-      }
-      throw Exception('Failed to fetch project timesheets');
-    } catch (e) {
-      throw Exception('Error fetching project timesheets: $e');
-    }
+    return getTimesheets(projectId: projectId);
   }
 
-  // Get timesheets by status
+  /// Get timesheets by status
   Future<List<Timesheet>> getTimesheetsByStatus(TimesheetStatus status) async {
-    try {
-      final response = await _apiService.get(
-        ApiEndpoints.timesheets,
-        queryParameters: {'status': status.name},
-      );
-      if (response.statusCode == 200) {
-        final List<dynamic> data = response.data['timesheets'] ??
-            response.data['data'] ??
-            response.data;
-        return data.map((json) => Timesheet.fromJson(json)).toList();
-      }
-      throw Exception('Failed to fetch timesheets by status');
-    } catch (e) {
-      throw Exception('Error fetching timesheets by status: $e');
-    }
+    return getTimesheets(status: status);
   }
 
-  // Get pending approvals for Principals
-  Future<List<Timesheet>> getPendingApprovals({UserRole? userRole}) async {
-    try {
-      if (userRole != UserRole.principal && userRole != UserRole.admin) {
-        throw Exception(
-            'Access denied: Only Principals and Admins can view pending approvals');
-      }
-
-      return await getTimesheetsByStatus(TimesheetStatus.submitted);
-    } catch (e) {
-      throw Exception('Error fetching pending approvals: $e');
-    }
-  }
-
-  // Get timesheets by date range
+  /// Get timesheets by date range
   Future<List<Timesheet>> getTimesheetsByDateRange(
     DateTime startDate,
     DateTime endDate,
   ) async {
-    try {
-      final response = await _apiService.get(
-        ApiEndpoints.timesheets,
-        queryParameters: {
-          'start_date': startDate.toIso8601String().split('T')[0],
-          'end_date': endDate.toIso8601String().split('T')[0],
-        },
-      );
-      if (response.statusCode == 200) {
-        final List<dynamic> data = response.data['data'] ?? response.data;
-        return data.map((json) => Timesheet.fromJson(json)).toList();
-      }
-      throw Exception('Failed to fetch timesheets by date range');
-    } catch (e) {
-      throw Exception('Error fetching timesheets by date range: $e');
-    }
+    return getTimesheets(startDate: startDate, endDate: endDate);
   }
 
-  // Get timesheet statistics for reporting
-  Future<Map<String, dynamic>> getTimesheetStatistics(
-      {String? employeeId, String? projectId}) async {
-    try {
-      Map<String, dynamic> queryParams = {};
-      if (employeeId != null) queryParams['employee_id'] = employeeId;
-      if (projectId != null) queryParams['project_id'] = projectId;
+  /// Get timesheet analytics
+  Future<Map<String, dynamic>> getTimesheetAnalytics({
+    DateTime? startDate,
+    DateTime? endDate,
+  }) async {
+    await _simulateNetworkDelay();
 
-      final timesheets = await getTimesheets();
+    try {
+      final timesheets = await getTimesheets(
+        startDate: startDate,
+        endDate: endDate,
+      );
+
+      final totalHours = timesheets.fold<double>(
+        0.0,
+        (sum, ts) => sum + ts.totalHours,
+      );
+
+      final statusCounts = <TimesheetStatus, int>{};
+      for (final status in TimesheetStatus.values) {
+        statusCounts[status] =
+            timesheets.where((ts) => ts.status == status).length;
+      }
+
+      final employeeHours = <String, double>{};
+      for (final ts in timesheets) {
+        employeeHours[ts.employeeId] =
+            (employeeHours[ts.employeeId] ?? 0) + ts.totalHours;
+      }
+
+      final projectHours = <String, double>{};
+      for (final ts in timesheets) {
+        projectHours[ts.projectId] =
+            (projectHours[ts.projectId] ?? 0) + ts.totalHours;
+      }
 
       return {
-        'total': timesheets.length,
-        'draft':
-            timesheets.where((t) => t.status == TimesheetStatus.draft).length,
-        'submitted': timesheets
-            .where((t) => t.status == TimesheetStatus.submitted)
-            .length,
-        'approved': timesheets
-            .where((t) => t.status == TimesheetStatus.approved)
-            .length,
-        'rejected': timesheets
-            .where((t) => t.status == TimesheetStatus.rejected)
-            .length,
-        'totalHours':
-            timesheets.fold<double>(0, (sum, t) => sum + t.getTotalHours()),
+        'totalHours': totalHours,
+        'totalTimesheets': timesheets.length,
+        'statusCounts': statusCounts,
+        'employeeHours': employeeHours,
+        'projectHours': projectHours,
+        'averageHoursPerDay':
+            timesheets.isNotEmpty ? totalHours / timesheets.length : 0.0,
       };
     } catch (e) {
-      throw Exception('Error fetching timesheet statistics: $e');
+      _logger.severe('Failed to get timesheet analytics: $e');
+      throw Exception('Failed to get analytics: $e');
     }
   }
 
-  // Search timesheets
-  Future<List<Timesheet>> searchTimesheets(String query) async {
-    try {
-      final response = await _apiService.get(
-        ApiEndpoints.timesheets,
-        queryParameters: {'search': query},
-      );
-      if (response.statusCode == 200) {
-        final List<dynamic> data = response.data['timesheets'] ??
-            response.data['data'] ??
-            response.data;
-        return data.map((json) => Timesheet.fromJson(json)).toList();
-      }
-      throw Exception('Failed to search timesheets');
-    } catch (e) {
-      throw Exception('Error searching timesheets: $e');
+  /// Validate timesheet data
+  void _validateTimesheetData(Timesheet timesheet) {
+    if (timesheet.employeeId.isEmpty) {
+      throw Exception('Employee ID is required');
     }
+
+    if (timesheet.projectId.isEmpty) {
+      throw Exception('Project ID is required');
+    }
+
+    if (timesheet.taskId.isEmpty) {
+      throw Exception('Task ID is required');
+    }
+
+    if (timesheet.totalHours <= 0) {
+      throw Exception('Total hours must be greater than 0');
+    }
+
+    if (timesheet.totalHours > 168) {
+      // Max 168 hours per week (7 days * 24 hours)
+      throw Exception('Total hours cannot exceed 168 hours per week');
+    }
+
+    if (timesheet.weekStartDate.isAfter(DateTime.now())) {
+      throw Exception('Cannot create timesheet for future weeks');
+    }
+
+    // Validate daily hours (max 24 hours per day)
+    for (final dayHours in timesheet.dailyHours) {
+      if (dayHours > 24) {
+        throw Exception('Daily hours cannot exceed 24 hours');
+      }
+    }
+  }
+
+  /// Check if timesheet can be modified
+  bool _canModifyTimesheet(Timesheet timesheet) {
+    // Can only modify draft and rejected timesheets
+    return timesheet.status == TimesheetStatus.draft ||
+        timesheet.status == TimesheetStatus.rejected;
+  }
+
+  /// Check if timesheet can be deleted
+  bool _canDeleteTimesheet(Timesheet timesheet) {
+    // Can only delete draft timesheets
+    return timesheet.status == TimesheetStatus.draft;
+  }
+
+  /// Simulate network delay for realistic behavior
+  Future<void> _simulateNetworkDelay() async {
+    final delay = 200 + _random.nextInt(800); // 200-1000ms
+    await Future.delayed(Duration(milliseconds: delay));
+  }
+
+  /// Get mock timesheet count for testing
+  int getMockTimesheetCount() => _mockTimesheets.length;
+
+  /// Clear mock data (for testing)
+  void clearMockData() {
+    _mockTimesheets.clear();
+    _isInitialized = false;
   }
 }

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'dart:async';
 import '../providers/timesheet_provider.dart';
 import '../widgets/timesheet_card.dart';
 import '../widgets/timesheet_search_bar.dart';
@@ -14,13 +15,48 @@ class TimesheetListScreen extends StatefulWidget {
   State<TimesheetListScreen> createState() => _TimesheetListScreenState();
 }
 
-class _TimesheetListScreenState extends State<TimesheetListScreen> {
+class _TimesheetListScreenState extends State<TimesheetListScreen>
+    with WidgetsBindingObserver {
+  Timer? _refreshTimer;
+
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<TimesheetProvider>().loadTimesheets();
+      _loadTimesheets();
+      _startAutoRefresh();
     });
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    _refreshTimer?.cancel();
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      // Refresh when app comes back to foreground
+      _loadTimesheets();
+    }
+  }
+
+  void _loadTimesheets() {
+    context.read<TimesheetProvider>().loadTimesheets();
+  }
+
+  void _startAutoRefresh() {
+    _refreshTimer = Timer.periodic(
+      const Duration(minutes: 2), // Refresh every 2 minutes
+      (timer) {
+        if (mounted) {
+          context.read<TimesheetProvider>().reloadTimesheets();
+        }
+      },
+    );
   }
 
   @override
@@ -30,9 +66,50 @@ class _TimesheetListScreenState extends State<TimesheetListScreen> {
         title: const Text('Timesheets'),
         actions: [
           IconButton(
-            icon: const Icon(Icons.refresh),
+            icon: Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: const Color(0xFF2196F3).withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: const Icon(
+                Icons.refresh,
+                color: Color(0xFF2196F3),
+              ),
+            ),
             onPressed: () {
-              context.read<TimesheetProvider>().loadTimesheets();
+              _loadTimesheets();
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: const Text('Timesheets refreshed'),
+                  backgroundColor: const Color(0xFF2196F3),
+                  behavior: SnackBarBehavior.floating,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  duration: const Duration(seconds: 1),
+                ),
+              );
+            },
+          ),
+          IconButton(
+            icon: Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: const Color(0xFF4CAF50).withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: const Icon(
+                Icons.add,
+                color: Color(0xFF4CAF50),
+              ),
+            ),
+            onPressed: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (context) => const AddTimesheetScreen(),
+                ),
+              );
             },
           ),
         ],
@@ -42,7 +119,7 @@ class _TimesheetListScreenState extends State<TimesheetListScreen> {
           // Search and Filter Section
           Container(
             padding: const EdgeInsets.all(16),
-            color: Colors.grey[50],
+            color: Colors.grey.withValues(alpha: 0.05),
             child: const Column(
               children: [
                 TimesheetSearchBar(),
@@ -70,7 +147,7 @@ class _TimesheetListScreenState extends State<TimesheetListScreen> {
                         Icon(
                           Icons.error_outline,
                           size: 64,
-                          color: Colors.red[300],
+                          color: Colors.red.withValues(alpha: 0.7),
                         ),
                         const SizedBox(height: 16),
                         Text(
@@ -78,14 +155,14 @@ class _TimesheetListScreenState extends State<TimesheetListScreen> {
                           style: TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.w600,
-                            color: Colors.grey[700],
+                            color: Colors.grey.withValues(alpha: 0.7),
                           ),
                         ),
                         const SizedBox(height: 8),
                         Text(
                           timesheetProvider.errorMessage!,
                           style: TextStyle(
-                            color: Colors.grey[600],
+                            color: Colors.grey.withValues(alpha: 0.6),
                           ),
                           textAlign: TextAlign.center,
                         ),
@@ -111,7 +188,7 @@ class _TimesheetListScreenState extends State<TimesheetListScreen> {
                         Icon(
                           Icons.access_time_outlined,
                           size: 64,
-                          color: Colors.grey[400],
+                          color: Colors.grey.withValues(alpha: 0.4),
                         ),
                         const SizedBox(height: 16),
                         Text(
@@ -121,7 +198,7 @@ class _TimesheetListScreenState extends State<TimesheetListScreen> {
                           style: TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.w600,
-                            color: Colors.grey[700],
+                            color: Colors.grey.withValues(alpha: 0.7),
                           ),
                         ),
                         const SizedBox(height: 8),
@@ -130,7 +207,7 @@ class _TimesheetListScreenState extends State<TimesheetListScreen> {
                               ? 'Add your first timesheet to get started'
                               : 'Try adjusting your search criteria',
                           style: TextStyle(
-                            color: Colors.grey[600],
+                            color: Colors.grey.withValues(alpha: 0.6),
                           ),
                         ),
                         if (timesheetProvider.searchQuery.isEmpty) ...[
@@ -155,9 +232,10 @@ class _TimesheetListScreenState extends State<TimesheetListScreen> {
 
                 return RefreshIndicator(
                   onRefresh: () async {
-                    await timesheetProvider.loadTimesheets();
+                    await context.read<TimesheetProvider>().loadTimesheets();
                   },
                   child: ListView.builder(
+                    key: const ValueKey('timesheet_list'),
                     padding: const EdgeInsets.all(16),
                     itemCount: timesheets.length,
                     itemBuilder: (context, index) {

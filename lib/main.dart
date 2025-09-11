@@ -6,6 +6,7 @@ import 'core/network/api_service.dart';
 import 'core/services/provider_factory.dart';
 import 'core/services/service_provider.dart';
 import 'core/navigation/app_router.dart';
+import 'core/theme/enterprise_theme.dart';
 import 'features/auth/auth_service.dart';
 import 'features/auth/providers/auth_provider.dart';
 import 'features/employee/providers/employee_provider.dart';
@@ -69,35 +70,8 @@ class ShangrilaEngineersApp extends StatelessWidget {
             debugShowCheckedModeBanner: false,
             initialRoute: AppRouter.initialRoute,
             onGenerateRoute: AppRouter.generateRoute,
-            theme: ThemeData(
-              primarySwatch: Colors.blue,
-              primaryColor: const Color(0xFF2196F3),
-              scaffoldBackgroundColor: Colors.grey[50],
-              appBarTheme: const AppBarTheme(
-                backgroundColor: Colors.white,
-                foregroundColor: Colors.black,
-                elevation: 0,
-                centerTitle: true,
-                titleTextStyle: TextStyle(
-                  color: Colors.black,
-                  fontSize: 18,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-              elevatedButtonTheme: ElevatedButtonThemeData(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF2196F3),
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 24,
-                    vertical: 12,
-                  ),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                ),
-              ),
-            ),
+            theme: AppTheme.lightTheme,
+            themeMode: ThemeMode.light, // Force light theme only
           );
         }),
       ),

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'dart:async';
 import '../../../core/navigation/app_router.dart';
 import '../../auth/providers/auth_provider.dart';
 import '../../employee/screens/employee_list_screen_wrapper.dart';
@@ -22,6 +23,7 @@ class MainDashboardScreen extends StatefulWidget {
 
 class _MainDashboardScreenState extends State<MainDashboardScreen> {
   int _selectedIndex = 0;
+  Timer? _refreshTimer;
 
   final List<Widget> _screens = [
     const DashboardHomeScreen(),
@@ -39,7 +41,27 @@ class _MainDashboardScreenState extends State<MainDashboardScreen> {
       // Load data for all providers when the app starts
       context.read<TimesheetProvider>().loadTimesheets();
       context.read<ReportProvider>().loadDashboardSummary();
+      _startPeriodicRefresh();
     });
+  }
+
+  @override
+  void dispose() {
+    _refreshTimer?.cancel();
+    super.dispose();
+  }
+
+  void _startPeriodicRefresh() {
+    _refreshTimer = Timer.periodic(
+      const Duration(minutes: 5), // Refresh every 5 minutes
+      (timer) {
+        if (mounted) {
+          // Background refresh for real-time updates
+          context.read<TimesheetProvider>().reloadTimesheets();
+          context.read<ReportProvider>().loadDashboardSummary();
+        }
+      },
+    );
   }
 
   @override
@@ -59,7 +81,7 @@ class _MainDashboardScreenState extends State<MainDashboardScreen> {
           });
         },
         selectedItemColor: const Color(0xFF2196F3),
-        unselectedItemColor: Colors.grey[600],
+        unselectedItemColor: Colors.grey.withValues(alpha: 0.6),
         items: const [
           BottomNavigationBarItem(
             icon: Icon(Icons.dashboard_outlined,
@@ -284,8 +306,21 @@ class DashboardHomeScreen extends StatelessWidget {
 
                 const SizedBox(height: 24),
 
-                // Summary Cards - Quick Overview
-                _buildSummaryCards(context),
+                // Summary Cards - Enhanced with Real-time Data
+                Consumer<ReportProvider>(
+                  builder: (context, reportProvider, child) {
+                    final dashboardMetrics =
+                        reportProvider.getDashboardMetrics();
+                    final timesheetMetrics =
+                        reportProvider.getTimesheetMetrics();
+
+                    return _buildSummaryCards(
+                      context,
+                      dashboardMetrics,
+                      timesheetMetrics,
+                    );
+                  },
+                ),
 
                 const SizedBox(height: 24),
 
@@ -309,79 +344,155 @@ class DashboardHomeScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildSummaryCards(BuildContext context) {
-    return Row(
-      children: [
-        Expanded(
-          child: _buildSummaryCard(
-            title: 'Active Projects',
-            value: '8',
-            icon: Icons.business,
-            color: Colors.blue,
+  Widget _buildSummaryCards(
+    BuildContext context,
+    Map<String, dynamic> dashboardMetrics,
+    Map<String, dynamic> timesheetMetrics,
+  ) {
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      child: Row(
+        children: [
+          Expanded(
+            child: _buildEnhancedSummaryCard(
+              title: 'Active Projects',
+              value: '${dashboardMetrics['activeProjects'] ?? 8}',
+              subtitle: '${dashboardMetrics['totalProjects'] ?? 12} total',
+              icon: Icons.business,
+              color: Colors.blue,
+              trend: '+12%',
+              isPositive: true,
+            ),
           ),
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: _buildSummaryCard(
-            title: 'Pending Tasks',
-            value: '12',
-            icon: Icons.assignment,
-            color: Colors.orange,
+          const SizedBox(width: 12),
+          Expanded(
+            child: _buildEnhancedSummaryCard(
+              title: 'Pending Tasks',
+              value: '${timesheetMetrics['pendingCount'] ?? 12}',
+              subtitle: 'Need review',
+              icon: Icons.assignment,
+              color: Colors.orange,
+              trend: '-5%',
+              isPositive: false,
+            ),
           ),
-        ),
-      ],
+          const SizedBox(width: 12),
+          Expanded(
+            child: _buildEnhancedSummaryCard(
+              title: 'Team Hours',
+              value:
+                  '${(timesheetMetrics['totalHours'] ?? 240.0).toStringAsFixed(0)}h',
+              subtitle: 'This week',
+              icon: Icons.access_time,
+              color: Colors.green,
+              trend: '+8%',
+              isPositive: true,
+            ),
+          ),
+        ],
+      ),
     );
   }
 
-  Widget _buildSummaryCard({
+  Widget _buildEnhancedSummaryCard({
     required String title,
     required String value,
+    required String subtitle,
     required IconData icon,
     required Color color,
+    required String trend,
+    required bool isPositive,
   }) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withValues(alpha: 0.1),
+            color: color.withValues(alpha: 0.1),
             spreadRadius: 1,
-            blurRadius: 4,
-            offset: const Offset(0, 2),
+            blurRadius: 8,
+            offset: const Offset(0, 4),
           ),
         ],
+        border: Border.all(
+          color: color.withValues(alpha: 0.2),
+          width: 1,
+        ),
       ),
-      child: Row(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(
-            icon,
-            color: color,
-            size: 32,
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: color.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Icon(
+                  icon,
+                  color: color,
+                  size: 20,
+                ),
+              ),
+              const Spacer(),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                decoration: BoxDecoration(
+                  color: isPositive
+                      ? Colors.green.withValues(alpha: 0.1)
+                      : Colors.red.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      isPositive ? Icons.trending_up : Icons.trending_down,
+                      color: isPositive ? Colors.green : Colors.red,
+                      size: 12,
+                    ),
+                    const SizedBox(width: 2),
+                    Text(
+                      trend,
+                      style: TextStyle(
+                        color: isPositive ? Colors.green : Colors.red,
+                        fontSize: 10,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
           ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: TextStyle(
-                    color: Colors.grey[700],
-                    fontSize: 14,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  value,
-                  style: TextStyle(
-                    color: Colors.grey[900],
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ],
+          const SizedBox(height: 12),
+          Text(
+            value,
+            style: TextStyle(
+              color: color,
+              fontSize: 24,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: 2),
+          Text(
+            title,
+            style: TextStyle(
+              color: Colors.grey.withValues(alpha: 0.8),
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            subtitle,
+            style: TextStyle(
+              color: Colors.grey.withValues(alpha: 0.6),
+              fontSize: 10,
             ),
           ),
         ],

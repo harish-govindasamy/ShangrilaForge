@@ -127,8 +127,8 @@ class _QuickActionsWidgetState extends State<QuickActionsWidget> {
             borderRadius: BorderRadius.circular(12),
             gradient: LinearGradient(
               colors: [
-                action['color'].withOpacity(0.1),
-                action['color'].withOpacity(0.05),
+                action['color'].withValues(alpha: 0.1),
+                action['color'].withValues(alpha: 0.05),
               ],
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
@@ -140,7 +140,7 @@ class _QuickActionsWidgetState extends State<QuickActionsWidget> {
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: action['color'].withOpacity(0.1),
+                  color: action['color'].withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Icon(
@@ -155,7 +155,7 @@ class _QuickActionsWidgetState extends State<QuickActionsWidget> {
                 style: TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w600,
-                  color: Colors.grey[800],
+                  color: Colors.grey.withValues(alpha: 0.8),
                 ),
                 textAlign: TextAlign.center,
                 overflow: TextOverflow.ellipsis,

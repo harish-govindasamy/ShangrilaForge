@@ -27,32 +27,54 @@ class TimesheetProvider extends ChangeNotifier {
   String? get selectedEmployeeId => _selectedEmployeeId;
   String? get selectedProjectId => _selectedProjectId;
 
-  // Get all timesheets
+  // Get all timesheets with improved error handling
   Future<void> loadTimesheets() async {
     _setLoading(true);
     _clearError();
 
     try {
-      // First load from local storage
-      _timesheets = await _localStorageService.getTimesheets();
-      notifyListeners();
+      // First load from local storage for immediate display
+      final localTimesheets = await _localStorageService.getTimesheets();
+      if (localTimesheets.isNotEmpty) {
+        _timesheets = localTimesheets;
+        notifyListeners();
+      }
 
-      // Then try to sync with API
+      // Then try to sync with API for latest data
       try {
         final apiTimesheets = await _timesheetService.getTimesheets();
         _timesheets = apiTimesheets;
         await _localStorageService.saveTimesheets(_timesheets);
         notifyListeners();
+        _logger.info(
+            'Timesheets loaded successfully from API: ${_timesheets.length} items');
       } catch (apiError) {
-        // API failed, but we have local data
+        _logger.warning('API sync failed, using local data: $apiError');
+        // If we have local data, continue with that
         if (_timesheets.isEmpty) {
-          rethrow;
+          throw Exception(
+              'No timesheets available offline and API failed: $apiError');
         }
       }
     } catch (e) {
-      _setError(e.toString());
+      _setError('Failed to load timesheets: ${e.toString()}');
+      _logger.severe('Failed to load timesheets: $e');
     } finally {
       _setLoading(false);
+    }
+  }
+
+  // Reload timesheets (for real-time updates)
+  Future<void> reloadTimesheets() async {
+    try {
+      final apiTimesheets = await _timesheetService.getTimesheets();
+      _timesheets = apiTimesheets;
+      await _localStorageService.saveTimesheets(_timesheets);
+      notifyListeners();
+      _logger.info('Timesheets reloaded successfully');
+    } catch (e) {
+      _logger.warning('Failed to reload timesheets: $e');
+      // Don't show error for background refresh
     }
   }
 
