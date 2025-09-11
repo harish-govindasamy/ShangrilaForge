@@ -9,10 +9,10 @@ class ServiceProvider extends InheritedWidget {
 
   /// Constructs a new [ServiceProvider]
   const ServiceProvider({
-    Key? key,
-    required Widget child,
+    super.key,
+    required super.child,
     required this.workflowService,
-  }) : super(key: key, child: child);
+  });
 
   /// Returns the nearest [ServiceProvider] up the widget tree
   static ServiceProvider of(BuildContext context) {

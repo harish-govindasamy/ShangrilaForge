@@ -108,7 +108,7 @@ class AppRouter {
       case employeeEditRoute:
         if (args is String) {
           return MaterialPageRoute(
-            builder: (_) => EmployeeFormScreen(employeeId: args),
+            builder: (_) => EmployeeFormScreen(employee: null),
           );
         }
         return _errorRoute();
@@ -133,7 +133,7 @@ class AppRouter {
       case projectEditRoute:
         if (args is String) {
           return MaterialPageRoute(
-            builder: (_) => ProjectFormScreen(projectId: args),
+            builder: (_) => ProjectFormScreen(project: null),
           );
         }
         return _errorRoute();

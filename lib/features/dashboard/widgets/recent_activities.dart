@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import '../../../core/services/service_provider.dart';
 import '../../../core/navigation/app_router.dart';
 
 class Activity {
@@ -210,7 +209,7 @@ class _RecentActivitiesWidgetState extends State<RecentActivitiesWidget> {
                         Container(
                           width: 8,
                           height: 8,
-                          decoration: BoxDecoration(
+                          decoration: const BoxDecoration(
                             color: Colors.blue,
                             shape: BoxShape.circle,
                           ),
@@ -260,7 +259,7 @@ class _RecentActivitiesWidgetState extends State<RecentActivitiesWidget> {
     return Container(
       padding: const EdgeInsets.all(8),
       decoration: BoxDecoration(
-        color: activity.color.withOpacity(0.1),
+        color: activity.color.withAlpha(25),
         borderRadius: BorderRadius.circular(8),
       ),
       child: Icon(
@@ -275,7 +274,7 @@ class _RecentActivitiesWidgetState extends State<RecentActivitiesWidget> {
     return CircleAvatar(
       radius: 18,
       backgroundImage: NetworkImage(activity.avatarUrl!),
-      backgroundColor: activity.color.withOpacity(0.2),
+      backgroundColor: activity.color.withAlpha(50),
     );
   }
 
@@ -371,49 +370,45 @@ class _RecentActivitiesWidgetState extends State<RecentActivitiesWidget> {
 
   // Take action based on activity type
   void _takeActionOn(Activity activity) {
-<<<<<<< HEAD
     String route = '';
     String id = activity.id; // In a real app, this would be a meaningful ID
-
-    if (activity.icon == Icons.access_time) {
-      route = AppRouter.timesheetDetailRoute;
-    } else if (activity.icon == Icons.work) {
-      route = AppRouter.projectDetailRoute;
-    } else if (activity.icon == Icons.chat) {
-      route = AppRouter
-          .projectDetailRoute; // Assuming comments are in project details
-    } else if (activity.icon == Icons.person_add) {
-      route = AppRouter.employeeDetailRoute;
-    } else if (activity.icon == Icons.analytics) {
-      route = AppRouter.reportsRoute;
-    } else if (activity.icon == Icons.attach_money) {
-      route = AppRouter.revenueRoute;
-    } else {
-      route = AppRouter.dashboardRoute;
-    }
-
-    // Navigate to the appropriate route with the ID
-    Navigator.of(context).pushNamed(route, arguments: id);
-=======
     String message = 'Navigating to ';
 
     if (activity.icon == Icons.access_time) {
+      route = AppRouter.timesheetDetailRoute;
       message += 'timesheet details...';
     } else if (activity.icon == Icons.work) {
+      route = AppRouter.projectDetailRoute;
       message += 'project details...';
     } else if (activity.icon == Icons.chat) {
+      route = AppRouter
+          .projectDetailRoute; // Assuming comments are in project details
       message += 'comments section...';
+    } else if (activity.icon == Icons.person_add) {
+      route = AppRouter.employeeDetailRoute;
+      message += 'employee details...';
+    } else if (activity.icon == Icons.analytics) {
+      route = AppRouter.reportsRoute;
+      message += 'reports...';
+    } else if (activity.icon == Icons.attach_money) {
+      route = AppRouter.revenueRoute;
+      message += 'revenue details...';
     } else {
+      route = AppRouter.dashboardRoute;
       message += 'details page...';
     }
 
+    // Show a message and navigate
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(message),
         behavior: SnackBarBehavior.floating,
+        duration: const Duration(seconds: 1),
       ),
     );
->>>>>>> fa182ade0bba8505d68c4b285e48c5684a4446f5
+
+    // Navigate to the appropriate route with the ID
+    Navigator.of(context).pushNamed(route, arguments: id);
   }
 
   // Show all activities in a separate view

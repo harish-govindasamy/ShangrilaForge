@@ -1,12 +1,7 @@
 import 'package:flutter/material.dart';
-import '../../shared/models/user_model.dart' hide UserRole;
-import '../../shared/models/project_model.dart' hide ProjectStatus;
-import '../../shared/models/employee_model.dart';
-import '../../shared/models/timesheet_model.dart' hide TimesheetStatus;
-import '../../shared/models/customer_model.dart';
+import '../../shared/models/project_model.dart';
+import '../../shared/models/timesheet_model.dart';
 import '../../shared/enums/user_role.dart';
-import '../../shared/enums/project_status.dart';
-import '../../shared/enums/timesheet_status.dart';
 import '../navigation/app_router.dart';
 
 /// A service class that handles the business logic and workflows
@@ -201,127 +196,62 @@ class WorkflowService {
   }
 
   /// Handle timesheet workflow
-  Future<bool> processTimesheetAction({
-    required TimesheetModel timesheet,
+  Future<Timesheet> processTimesheetAction({
+    required Timesheet timesheet,
     required String action,
     String? comment,
   }) async {
     switch (action) {
       case 'submit':
-        timesheet.status = TimesheetStatus.submitted;
-        timesheet.submittedDate = DateTime.now();
-        return true;
+        return timesheet.copyWith(status: TimesheetStatus.submitted);
 
       case 'approve':
-        timesheet.status = TimesheetStatus.approved;
-        timesheet.approvedDate = DateTime.now();
-        if (comment != null && comment.isNotEmpty) {
-          timesheet.comments = [
-            ...timesheet.comments ?? [],
-            {
-              'date': DateTime.now().toIso8601String(),
-              'text': comment,
-              'type': 'approval'
-            }
-          ];
-        }
-        return true;
+        return timesheet.copyWith(status: TimesheetStatus.approved);
 
       case 'reject':
-        timesheet.status = TimesheetStatus.rejected;
-        if (comment != null && comment.isNotEmpty) {
-          timesheet.comments = [
-            ...timesheet.comments ?? [],
-            {
-              'date': DateTime.now().toIso8601String(),
-              'text': comment,
-              'type': 'rejection'
-            }
-          ];
-        }
-        return true;
+        return timesheet.copyWith(status: TimesheetStatus.rejected);
 
       case 'revise':
-        timesheet.status = TimesheetStatus.draft;
-        if (comment != null && comment.isNotEmpty) {
-          timesheet.comments = [
-            ...timesheet.comments ?? [],
-            {
-              'date': DateTime.now().toIso8601String(),
-              'text': comment,
-              'type': 'revision'
-            }
-          ];
-        }
-        return true;
+        return timesheet.copyWith(status: TimesheetStatus.draft);
 
       default:
-        return false;
+        return timesheet;
     }
   }
 
   /// Handle project workflow
-  Future<bool> processProjectAction({
-    required ProjectModel project,
+  Future<Project> processProjectAction({
+    required Project project,
     required String action,
     String? comment,
   }) async {
     switch (action) {
       case 'start':
-        project.status = ProjectStatus.inProgress;
-        project.startDate = DateTime.now();
-        return true;
+        return project.copyWith(
+          status: ProjectStatus.inProgress,
+          startDate: DateTime.now(),
+        );
 
       case 'complete':
-        project.status = ProjectStatus.completed;
-        project.endDate = DateTime.now();
-        return true;
+        return project.copyWith(
+          status: ProjectStatus.completed,
+          endDate: DateTime.now(),
+        );
 
       case 'pause':
-        project.status = ProjectStatus.onHold;
-        if (comment != null && comment.isNotEmpty) {
-          project.notes = [
-            ...project.notes ?? [],
-            {
-              'date': DateTime.now().toIso8601String(),
-              'text': comment,
-              'type': 'pause'
-            }
-          ];
-        }
-        return true;
+        return project.copyWith(status: ProjectStatus.onHold);
 
       case 'resume':
-        project.status = ProjectStatus.inProgress;
-        if (comment != null && comment.isNotEmpty) {
-          project.notes = [
-            ...project.notes ?? [],
-            {
-              'date': DateTime.now().toIso8601String(),
-              'text': comment,
-              'type': 'resume'
-            }
-          ];
-        }
-        return true;
+        return project.copyWith(status: ProjectStatus.inProgress);
 
       case 'cancel':
-        project.status = ProjectStatus.cancelled;
-        project.endDate = DateTime.now();
-        if (comment != null && comment.isNotEmpty) {
-          project.notes = [
-            ...project.notes ?? [],
-            {
-              'date': DateTime.now().toIso8601String(),
-              'text': comment,
-              'type': 'cancellation'
-            }
-          ];
-        }
-        return true;
+        return project.copyWith(
+          status: ProjectStatus.cancelled,
+          endDate: DateTime.now(),
+        );
 
       default:
-        return false;
+        return project;
     }
   }
 
@@ -436,36 +366,35 @@ class WorkflowService {
 
   /// Calculate project metrics
   Map<String, dynamic> calculateProjectMetrics(
-      ProjectModel project, List<TimesheetModel> timesheets) {
+      Project project, List<Timesheet> timesheets) {
     // Calculate total hours spent on the project
     double totalHours = 0;
     for (var timesheet in timesheets) {
-      if (timesheet.projectId == project.id &&
+      if (timesheet.projectId == project.projectId &&
           timesheet.status == TimesheetStatus.approved) {
-        totalHours += timesheet.hours ?? 0;
+        totalHours += timesheet.totalHours;
       }
     }
 
     // Calculate progress percentage
     double progressPercentage = 0;
-    if (project.estimatedHours != null && project.estimatedHours! > 0) {
-      progressPercentage = (totalHours / project.estimatedHours!) * 100;
+    if (project.estimatedHours > 0) {
+      progressPercentage = (totalHours / project.estimatedHours) * 100;
       // Cap at 100%
       progressPercentage = progressPercentage > 100 ? 100 : progressPercentage;
     }
 
-    // Calculate remaining budget
+    // Calculate remaining budget (simplified - using totalCost as budget)
     double? remainingBudget;
-    if (project.budget != null) {
-      // Simplified calculation - in reality, would need to account for rates
+    if (project.totalCost > 0) {
       remainingBudget =
-          project.budget! - (totalHours * 100); // Assuming $100/hour
+          project.totalCost - (totalHours * 100); // Assuming $100/hour
     }
 
-    // Calculate days until deadline
+    // Calculate days until deadline (using endDate as deadline)
     int? daysUntilDeadline;
-    if (project.deadline != null) {
-      daysUntilDeadline = project.deadline!.difference(DateTime.now()).inDays;
+    if (project.endDate != null) {
+      daysUntilDeadline = project.endDate!.difference(DateTime.now()).inDays;
     }
 
     return {

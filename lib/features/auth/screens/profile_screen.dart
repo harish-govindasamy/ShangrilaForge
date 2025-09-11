@@ -4,7 +4,7 @@ import '../providers/auth_provider.dart';
 import '../../../core/navigation/app_router.dart';
 
 class ProfileScreen extends StatefulWidget {
-  const ProfileScreen({Key? key}) : super(key: key);
+  const ProfileScreen({super.key});
 
   @override
   State<ProfileScreen> createState() => _ProfileScreenState();
@@ -21,12 +21,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
   @override
   void initState() {
     super.initState();
-    final user = Provider.of<AuthProvider>(context, listen: false).currentUser;
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final user = authProvider.user;
+    final employee = authProvider.employee;
 
-    _nameController = TextEditingController(text: user?.name ?? '');
-    _emailController = TextEditingController(text: user?.email ?? '');
-    _phoneController = TextEditingController(text: user?.phone ?? '');
-    _positionController = TextEditingController(text: user?.position ?? '');
+    _nameController =
+        TextEditingController(text: employee?.empName ?? user?.userName ?? '');
+    _emailController = TextEditingController(
+        text: employee?.email ?? employee?.empEmail ?? '');
+    _phoneController = TextEditingController(text: employee?.empCmob ?? '');
+    _positionController =
+        TextEditingController(text: employee?.empDesignation ?? '');
   }
 
   @override
@@ -76,7 +81,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final user = Provider.of<AuthProvider>(context).currentUser;
+    final authProvider = Provider.of<AuthProvider>(context);
+    final user = authProvider.user;
+    final employee = authProvider.employee;
 
     return Scaffold(
       appBar: AppBar(
@@ -111,14 +118,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
             // User name and role
             Text(
-              user?.name ?? 'User',
+              employee?.empName ?? user?.userName ?? 'User',
               style: const TextStyle(
                 fontSize: 24,
                 fontWeight: FontWeight.bold,
               ),
             ),
             Text(
-              user?.role?.toString() ?? 'Role',
+              user?.role.displayName ?? 'Role',
               style: const TextStyle(
                 fontSize: 16,
                 color: Colors.grey,

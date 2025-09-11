@@ -1,17 +1,13 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
-import '../../../shared/enums/timesheet_status.dart';
-import '../../../core/navigation/app_router.dart';
-import '../providers/timesheet_provider.dart';
 
 class TimesheetFormScreen extends StatefulWidget {
   final String? timesheetId;
 
   const TimesheetFormScreen({
-    Key? key,
+    super.key,
     this.timesheetId,
-  }) : super(key: key);
+  });
 
   @override
   State<TimesheetFormScreen> createState() => _TimesheetFormScreenState();
@@ -138,10 +134,8 @@ class _TimesheetFormScreenState extends State<TimesheetFormScreen> {
                       prefixIcon: Icon(Icons.calendar_today),
                       suffixIcon: Icon(Icons.arrow_drop_down),
                     ),
-                    controller: TextEditingController(
-                      text: DateFormat('EEEE, MMMM d, yyyy')
-                          .format(_selectedDate),
-                    ),
+                    initialValue:
+                        DateFormat('EEEE, MMMM d, yyyy').format(_selectedDate),
                     validator: (value) {
                       if (value == null || value.isEmpty) {
                         return 'Please select a date';
@@ -159,7 +153,7 @@ class _TimesheetFormScreenState extends State<TimesheetFormScreen> {
                   labelText: 'Project',
                   prefixIcon: Icon(Icons.business),
                 ),
-                value: _selectedProject,
+                initialValue: _selectedProject,
                 items: projects.map((project) {
                   return DropdownMenuItem<String>(
                     value: project['id'],

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import '../../../core/navigation/app_router.dart';
 
 class SettingsScreen extends StatelessWidget {
-  const SettingsScreen({Key? key}) : super(key: key);
+  const SettingsScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -137,9 +137,9 @@ class SectionHeader extends StatelessWidget {
   final String title;
 
   const SectionHeader({
-    Key? key,
+    super.key,
     required this.title,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -165,13 +165,13 @@ class SettingsItem extends StatelessWidget {
   final Color? textColor;
 
   const SettingsItem({
-    Key? key,
+    super.key,
     required this.icon,
     required this.title,
     required this.onTap,
     this.iconColor,
     this.textColor,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

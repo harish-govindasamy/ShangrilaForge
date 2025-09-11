@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../../../core/services/service_provider.dart';
 import '../../../core/navigation/app_router.dart';
-import '../../../shared/enums/user_role.dart';
 import '../../auth/providers/auth_provider.dart';
 import '../../employee/screens/employee_list_screen_wrapper.dart';
 import '../../project/screens/project_list_screen_wrapper.dart';
@@ -169,13 +167,15 @@ class DashboardHomeScreen extends StatelessWidget {
             // Refresh dashboard data
             await context.read<TimesheetProvider>().loadTimesheets();
             await context.read<ReportProvider>().loadDashboardSummary();
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('Dashboard refreshed'),
-                duration: Duration(seconds: 1),
-                backgroundColor: Color(0xFF2196F3),
-              ),
-            );
+            if (context.mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Dashboard refreshed'),
+                  duration: Duration(seconds: 1),
+                  backgroundColor: Color(0xFF2196F3),
+                ),
+              );
+            }
           },
           child: SingleChildScrollView(
             physics: const AlwaysScrollableScrollPhysics(),
@@ -201,7 +201,7 @@ class DashboardHomeScreen extends StatelessWidget {
                         borderRadius: BorderRadius.circular(16),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.blue.withOpacity(0.2),
+                            color: Colors.blue.withValues(alpha: 0.2),
                             blurRadius: 10,
                             offset: const Offset(0, 4),
                           ),
@@ -217,7 +217,7 @@ class DashboardHomeScreen extends StatelessWidget {
                                   'Welcome back,',
                                   style: TextStyle(
                                     fontSize: 16,
-                                    color: Colors.white.withOpacity(0.9),
+                                    color: Colors.white.withValues(alpha: 0.9),
                                   ),
                                 ),
                                 const SizedBox(height: 4),
@@ -236,7 +236,7 @@ class DashboardHomeScreen extends StatelessWidget {
                                     vertical: 6,
                                   ),
                                   decoration: BoxDecoration(
-                                    color: Colors.white.withOpacity(0.2),
+                                    color: Colors.white.withValues(alpha: 0.2),
                                     borderRadius: BorderRadius.circular(20),
                                   ),
                                   child: Text(
@@ -253,7 +253,8 @@ class DashboardHomeScreen extends StatelessWidget {
                           ),
                           CircleAvatar(
                             radius: 30,
-                            backgroundColor: Colors.white.withOpacity(0.2),
+                            backgroundColor:
+                                Colors.white.withValues(alpha: 0.2),
                             child: Text(
                               employee != null && employee.empName.isNotEmpty
                                   ? employee.empName[0].toUpperCase()
@@ -296,6 +297,86 @@ class DashboardHomeScreen extends StatelessWidget {
             ),
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildSummaryCards(BuildContext context) {
+    return Row(
+      children: [
+        Expanded(
+          child: _buildSummaryCard(
+            title: 'Active Projects',
+            value: '8',
+            icon: Icons.business,
+            color: Colors.blue,
+          ),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: _buildSummaryCard(
+            title: 'Pending Tasks',
+            value: '12',
+            icon: Icons.assignment,
+            color: Colors.orange,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildSummaryCard({
+    required String title,
+    required String value,
+    required IconData icon,
+    required Color color,
+  }) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(8),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withValues(alpha: 0.1),
+            spreadRadius: 1,
+            blurRadius: 4,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          Icon(
+            icon,
+            color: color,
+            size: 32,
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: TextStyle(
+                    color: Colors.grey[700],
+                    fontSize: 14,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  value,
+                  style: TextStyle(
+                    color: Colors.grey[900],
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }

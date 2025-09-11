@@ -5,6 +5,7 @@ import '../../../shared/models/project_model.dart';
 import '../../../shared/models/employee_model.dart';
 import '../../../providers/enhanced_project_provider.dart';
 import '../../../features/employee/providers/enhanced_employee_provider.dart';
+import '../../../features/auth/providers/auth_provider.dart';
 
 class ProjectFormScreen extends StatefulWidget {
   final Project? project;
@@ -717,9 +718,12 @@ class _ProjectFormScreenState extends State<ProjectFormScreen> {
 
     try {
       if (_isEditing) {
+        final authProvider = context.read<AuthProvider>();
+        final currentUserId = authProvider.user?.userId ?? 'unknown_user';
+
         final success = await provider.updateProject(
           projectId: widget.project!.projectId,
-          updatedBy: 'current_user', // TODO: Get from auth
+          updatedBy: currentUserId,
           jobName: _jobNameController.text.trim(),
           description: _descriptionController.text.trim(),
           estimatedHours: double.tryParse(_estimatedHoursController.text),
@@ -747,10 +751,13 @@ class _ProjectFormScreenState extends State<ProjectFormScreen> {
           );
         }
       } else {
+        final authProvider = context.read<AuthProvider>();
+        final currentUserId = authProvider.user?.userId ?? 'unknown_user';
+
         final success = await provider.createProject(
           jobName: _jobNameController.text.trim(),
           customerId: _customerIdController.text.trim(),
-          createdBy: 'current_user', // TODO: Get from auth
+          createdBy: currentUserId,
           description: _descriptionController.text.trim(),
           estimatedHours: double.tryParse(_estimatedHoursController.text),
           priority: _selectedPriority,

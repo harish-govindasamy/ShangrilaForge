@@ -3,7 +3,10 @@ import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 
 import '../../../providers/enhanced_project_provider.dart';
+import '../../../providers/simple_enhanced_employee_provider.dart';
+import '../../../providers/auth_provider.dart';
 import '../../../shared/models/project_model.dart';
+import '../../../core/navigation/app_router.dart';
 
 class ProjectDetailScreen extends StatefulWidget {
   final String projectId;
@@ -659,42 +662,52 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
                 ),
               )
             else
-              Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: project.assignedEmployeeIds.map((employeeId) {
-                  return Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: Colors.blue.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(8),
-                      border:
-                          Border.all(color: Colors.blue.withValues(alpha: 0.3)),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        CircleAvatar(
-                          radius: 12,
-                          backgroundColor: Colors.blue,
-                          child: Text(
-                            employeeId.substring(0, 1).toUpperCase(),
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 12,
-                              fontWeight: FontWeight.bold,
+              Consumer<EnhancedEmployeeProvider>(
+                builder: (context, employeeProvider, child) {
+                  return Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: project.assignedEmployeeIds.map((employeeId) {
+                      // Get employee name from provider
+                      final employee = employeeProvider.employees
+                          .where((e) => e.employeeId == employeeId)
+                          .firstOrNull;
+                      final displayName = employee?.empName ?? employeeId;
+
+                      return Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: Colors.blue.withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(
+                              color: Colors.blue.withValues(alpha: 0.3)),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            CircleAvatar(
+                              radius: 12,
+                              backgroundColor: Colors.blue,
+                              child: Text(
+                                displayName.substring(0, 1).toUpperCase(),
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
                             ),
-                          ),
+                            const SizedBox(width: 8),
+                            Text(
+                              displayName,
+                              style: theme.textTheme.bodyMedium,
+                            ),
+                          ],
                         ),
-                        const SizedBox(width: 8),
-                        Text(
-                          'Employee: $employeeId', // TODO: Get actual employee name
-                          style: theme.textTheme.bodyMedium,
-                        ),
-                      ],
-                    ),
+                      );
+                    }).toList(),
                   );
-                }).toList(),
+                },
               ),
           ],
         ),
@@ -756,10 +769,11 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
       BuildContext context, String action, EnhancedProjectProvider provider) {
     switch (action) {
       case 'edit':
-        // TODO: Navigate to edit form
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-              content: Text('Edit functionality not implemented yet')),
+        // Navigate to edit form
+        Navigator.pushNamed(
+          context,
+          AppRouter.projectEditRoute,
+          arguments: provider.selectedProject!.projectId,
         );
         break;
       case 'archive':
@@ -790,9 +804,11 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
           ElevatedButton(
             onPressed: () async {
               parentNavigator.pop();
+              final authProvider = context.read<AuthProvider>();
+              final currentUserId = authProvider.user?.userId ?? 'unknown_user';
               final success = await provider.archiveProject(
                 projectId: project.projectId,
-                archivedBy: 'current_user', // TODO: Get from auth
+                archivedBy: currentUserId,
               );
               if (success) {
                 parentMessenger.showSnackBar(
@@ -827,9 +843,11 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen> {
           ElevatedButton(
             onPressed: () async {
               parentNavigator.pop();
+              final authProvider = context.read<AuthProvider>();
+              final currentUserId = authProvider.user?.userId ?? 'unknown_user';
               final success = await provider.restoreProject(
                 projectId: project.projectId,
-                restoredBy: 'current_user', // TODO: Get from auth
+                restoredBy: currentUserId,
               );
               if (success) {
                 parentMessenger.showSnackBar(

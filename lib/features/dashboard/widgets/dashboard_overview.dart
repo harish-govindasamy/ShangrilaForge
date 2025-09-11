@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../../../core/services/service_provider.dart';
 import '../../../core/navigation/app_router.dart';
 import '../../../shared/enums/user_role.dart';
 import '../../auth/providers/auth_provider.dart';
@@ -49,11 +48,11 @@ class _DashboardOverviewWidgetState extends State<DashboardOverviewWidget> {
         UserRole userRole;
         final role = authProvider.user?.role;
 
-        if (role == null || role == 'employee') {
+        if (role == null || role == UserRole.employee.name) {
           userRole = UserRole.employee;
-        } else if (role == 'principal') {
+        } else if (role == UserRole.principal.name) {
           userRole = UserRole.principal;
-        } else if (role == 'admin') {
+        } else if (role == UserRole.admin.name) {
           userRole = UserRole.admin;
         } else {
           userRole = UserRole.employee;
@@ -133,19 +132,21 @@ class _DashboardOverviewWidgetState extends State<DashboardOverviewWidget> {
 
     // Simulate API call with delay
     Future.delayed(const Duration(seconds: 1), () {
-      setState(() {
-        _lastUpdated = DateTime.now();
-        _isLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          _lastUpdated = DateTime.now();
+          _isLoading = false;
+        });
 
-      // Show success message
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Dashboard data refreshed'),
-          behavior: SnackBarBehavior.floating,
-          duration: Duration(seconds: 2),
-        ),
-      );
+        // Show success message
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Dashboard data refreshed'),
+            behavior: SnackBarBehavior.floating,
+            duration: Duration(seconds: 2),
+          ),
+        );
+      }
     });
   }
 
@@ -305,7 +306,6 @@ class _DashboardOverviewWidgetState extends State<DashboardOverviewWidget> {
 
   // Navigate to a specific section
   void _navigateToSection(String section) {
-<<<<<<< HEAD
     // Map section to route
     String route = '';
 
@@ -343,66 +343,6 @@ class _DashboardOverviewWidgetState extends State<DashboardOverviewWidget> {
 
     // Navigate to the route
     Navigator.of(context).pushNamed(route);
-=======
-    // Get the corresponding title based on the section
-    String title = '';
-    // We'll need these routes later when implementing navigation
-    // String route = '';
-
-    switch (section) {
-      case 'employees':
-        // route = '/employees';
-        title = 'Employees';
-        break;
-      case 'projects':
-        // route = '/projects';
-        title = 'Projects';
-        break;
-      case 'approvals':
-        // route = '/approvals';
-        title = 'Pending Approvals';
-        break;
-      case 'revenue':
-        // route = '/finance/revenue';
-        title = 'Revenue';
-        break;
-      case 'team':
-        // route = '/team';
-        title = 'Team Members';
-        break;
-      case 'reviews':
-        // route = '/reviews';
-        title = 'Pending Reviews';
-        break;
-      case 'hours':
-        // route = '/hours';
-        title = 'Hours';
-        break;
-      case 'timesheets':
-        // route = '/timesheets';
-        title = 'Timesheets';
-        break;
-      case 'total_hours':
-        // route = '/hours/total';
-        title = 'Total Hours';
-        break;
-      default:
-        // route = '/dashboard';
-        title = 'Dashboard';
-    }
-
-    // For now, show a snackbar since the routes aren't implemented yet
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Navigating to $title...'),
-        behavior: SnackBarBehavior.floating,
-        duration: const Duration(seconds: 2),
-      ),
-    );
-
-    // Uncomment this when routes are implemented:
-    // Navigator.of(context).pushNamed(route);
->>>>>>> fa182ade0bba8505d68c4b285e48c5684a4446f5
   }
 
   Widget _buildStatCard(StatCard card) {
@@ -420,8 +360,8 @@ class _DashboardOverviewWidgetState extends State<DashboardOverviewWidget> {
             borderRadius: BorderRadius.circular(12),
             gradient: LinearGradient(
               colors: [
-                card.color.withOpacity(0.1),
-                card.color.withOpacity(0.05),
+                card.color.withAlpha(25),
+                card.color.withAlpha(12),
               ],
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
@@ -438,7 +378,7 @@ class _DashboardOverviewWidgetState extends State<DashboardOverviewWidget> {
                   Container(
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
-                      color: card.color.withOpacity(0.1),
+                      color: card.color.withAlpha(25),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Icon(

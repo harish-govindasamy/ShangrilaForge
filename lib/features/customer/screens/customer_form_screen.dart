@@ -1,15 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import '../../../core/navigation/app_router.dart';
-import '../providers/customer_provider.dart';
 
 class CustomerFormScreen extends StatefulWidget {
   final String? customerId;
 
   const CustomerFormScreen({
-    Key? key,
+    super.key,
     this.customerId,
-  }) : super(key: key);
+  });
 
   @override
   State<CustomerFormScreen> createState() => _CustomerFormScreenState();
