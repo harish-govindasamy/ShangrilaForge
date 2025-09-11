@@ -11,7 +11,7 @@ class CustomDatePicker extends StatelessWidget {
   final bool isRequired;
 
   const CustomDatePicker({
-    Key? key,
+    super.key,
     required this.label,
     required this.selectedDate,
     required this.onDateSelected,
@@ -19,7 +19,7 @@ class CustomDatePicker extends StatelessWidget {
     this.lastDate,
     this.errorText,
     this.isRequired = false,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

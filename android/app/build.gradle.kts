@@ -7,7 +7,7 @@ plugins {
 
 android {
     namespace = "com.example.shangrila_engineers_app"
-    compileSdk = flutter.compileSdkVersion
+    compileSdk = 36  // Use API 36 to satisfy newer plugins
     ndkVersion = flutter.ndkVersion
 
     compileOptions {
@@ -24,8 +24,8 @@ android {
         applicationId = "com.example.shangrila_engineers_app"
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
-        minSdk = flutter.minSdkVersion
-        targetSdk = flutter.targetSdkVersion
+    minSdk = flutter.minSdkVersion  // Specify minimum SDK (use numeric value to avoid resolution issues)
+    targetSdk = 36  // Use API 36 to satisfy newer plugins
         versionCode = flutter.versionCode
         versionName = flutter.versionName
     }

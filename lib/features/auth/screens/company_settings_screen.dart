@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 class CompanySettingsScreen extends StatefulWidget {
-  const CompanySettingsScreen({Key? key}) : super(key: key);
+  const CompanySettingsScreen({super.key});
 
   @override
   State<CompanySettingsScreen> createState() => _CompanySettingsScreenState();

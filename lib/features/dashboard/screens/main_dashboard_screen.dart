@@ -122,8 +122,16 @@ class DashboardHomeScreen extends StatelessWidget {
           ),
           PopupMenuButton<String>(
             onSelected: (value) {
-              if (value == 'logout') {
-                _handleLogout(context);
+              switch (value) {
+                case 'profile':
+                  Navigator.of(context).pushNamed(AppRouter.profileRoute);
+                  break;
+                case 'settings':
+                  Navigator.of(context).pushNamed(AppRouter.settingsRoute);
+                  break;
+                case 'logout':
+                  _handleLogout(context);
+                  break;
               }
             },
             itemBuilder: (context) => [

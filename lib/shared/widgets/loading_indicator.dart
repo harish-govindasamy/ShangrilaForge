@@ -5,10 +5,10 @@ class LoadingIndicator extends StatelessWidget {
   final bool showBackground;
 
   const LoadingIndicator({
-    Key? key,
+    super.key,
     this.message = 'Loading...',
     this.showBackground = true,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

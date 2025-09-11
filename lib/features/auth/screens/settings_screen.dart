@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../providers/auth_provider.dart';
 import '../../../core/navigation/app_router.dart';
 
 class SettingsScreen extends StatelessWidget {
@@ -105,20 +107,26 @@ class SettingsScreen extends StatelessWidget {
               // Show logout confirmation dialog
               showDialog(
                 context: context,
-                builder: (context) => AlertDialog(
+                builder: (dialogContext) => AlertDialog(
                   title: const Text('Logout'),
                   content: const Text('Are you sure you want to logout?'),
                   actions: [
                     TextButton(
-                      onPressed: () => Navigator.of(context).pop(),
+                      onPressed: () => Navigator.of(dialogContext).pop(),
                       child: const Text('CANCEL'),
                     ),
                     TextButton(
-                      onPressed: () {
-                        // Perform logout
-                        Navigator.of(context).pop();
-                        Navigator.of(context)
-                            .pushReplacementNamed(AppRouter.loginRoute);
+                      onPressed: () async {
+                        Navigator.of(dialogContext).pop();
+                        final authProvider =
+                            Provider.of<AuthProvider>(context, listen: false);
+                        await authProvider.logout();
+                        if (context.mounted) {
+                          Navigator.of(context).pushNamedAndRemoveUntil(
+                            AppRouter.loginRoute,
+                            (route) => false,
+                          );
+                        }
                       },
                       child: const Text('LOGOUT'),
                     ),
