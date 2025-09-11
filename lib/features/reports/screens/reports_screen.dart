@@ -251,52 +251,68 @@ class _ReportsScreenState extends State<ReportsScreen>
             ),
             SizedBox(height: AppTheme.spacingMd),
 
-            GridView.count(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              crossAxisCount: 2,
-              crossAxisSpacing: AppTheme.spacingMd,
-              mainAxisSpacing: AppTheme.spacingMd,
-              childAspectRatio: 0.8,
-              children: [
-                EnterpriseInfoCard(
-                  title: 'Total Projects',
-                  value: '${metrics['totalProjects'] ?? 0}',
-                  subtitle: 'Active projects in pipeline',
-                  icon: Icons.work_outline,
-                  color: AppTheme.primaryBlue,
-                  trend: '+12%',
-                  isPositiveTrend: true,
-                ),
-                EnterpriseInfoCard(
-                  title: 'Team Members',
-                  value: '${metrics['totalEmployees'] ?? 0}',
-                  subtitle: 'Active team members',
-                  icon: Icons.people_outline,
-                  color: AppTheme.secondaryBlue,
-                  trend: '+5%',
-                  isPositiveTrend: true,
-                ),
-                EnterpriseInfoCard(
-                  title: 'Hours Logged',
-                  value:
-                      '${(metrics['totalHours'] ?? 0.0).toStringAsFixed(0)}h',
-                  subtitle: 'This month',
-                  icon: Icons.access_time_outlined,
-                  color: AppTheme.accentBlue,
-                  trend: '+8%',
-                  isPositiveTrend: true,
-                ),
-                EnterpriseInfoCard(
-                  title: 'Efficiency',
-                  value: '94%',
-                  subtitle: 'Overall performance',
-                  icon: Icons.trending_up_outlined,
-                  color: AppTheme.successGreen,
-                  trend: '+3%',
-                  isPositiveTrend: true,
-                ),
-              ],
+            LayoutBuilder(
+              builder: (context, constraints) {
+                // Responsive grid - adjust columns based on width
+                final crossAxisCount = constraints.maxWidth > 800
+                    ? 4
+                    : constraints.maxWidth > 600
+                        ? 2
+                        : 1;
+                final childAspectRatio = constraints.maxWidth > 800
+                    ? 1.2
+                    : constraints.maxWidth > 600
+                        ? 1.0
+                        : 1.5;
+
+                return GridView.count(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  crossAxisCount: crossAxisCount,
+                  crossAxisSpacing: AppTheme.spacingMd,
+                  mainAxisSpacing: AppTheme.spacingMd,
+                  childAspectRatio: childAspectRatio,
+                  children: [
+                    EnterpriseInfoCard(
+                      title: 'Total Projects',
+                      value: '${metrics['totalProjects'] ?? 0}',
+                      subtitle: 'Active projects in pipeline',
+                      icon: Icons.work_outline,
+                      color: AppTheme.primaryBlue,
+                      trend: '+12%',
+                      isPositiveTrend: true,
+                    ),
+                    EnterpriseInfoCard(
+                      title: 'Team Members',
+                      value: '${metrics['totalEmployees'] ?? 0}',
+                      subtitle: 'Active team members',
+                      icon: Icons.people_outline,
+                      color: AppTheme.secondaryBlue,
+                      trend: '+5%',
+                      isPositiveTrend: true,
+                    ),
+                    EnterpriseInfoCard(
+                      title: 'Hours Logged',
+                      value:
+                          '${(metrics['totalHours'] ?? 0.0).toStringAsFixed(0)}h',
+                      subtitle: 'This month',
+                      icon: Icons.access_time_outlined,
+                      color: AppTheme.accentBlue,
+                      trend: '+8%',
+                      isPositiveTrend: true,
+                    ),
+                    EnterpriseInfoCard(
+                      title: 'Efficiency',
+                      value: '94%',
+                      subtitle: 'Overall performance',
+                      icon: Icons.trending_up_outlined,
+                      color: AppTheme.successGreen,
+                      trend: '+3%',
+                      isPositiveTrend: true,
+                    ),
+                  ],
+                );
+              },
             ),
 
             SizedBox(height: AppTheme.spacingLg),
@@ -339,57 +355,66 @@ class _ReportsScreenState extends State<ReportsScreen>
             style: AppTheme.headingSmall,
           ),
           SizedBox(height: AppTheme.spacingMd),
-          GridView.count(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            crossAxisCount: 2,
-            crossAxisSpacing: AppTheme.spacingMd,
-            mainAxisSpacing: AppTheme.spacingMd,
-            childAspectRatio: 0.6,
-            children: [
-              ReportCard(
-                title: 'Employee Performance',
-                subtitle: 'Detailed employee metrics and productivity analysis',
-                icon: Icons.person_outline,
-                color: AppTheme.primaryBlue,
-                onTap: () => _navigateToReport('employee'),
-              ),
-              ReportCard(
-                title: 'Project Analytics',
-                subtitle: 'Project progress, costs, and timeline analysis',
-                icon: Icons.work_outline,
-                color: AppTheme.secondaryBlue,
-                onTap: () => _navigateToReport('project'),
-              ),
-              ReportCard(
-                title: 'Timesheet Insights',
-                subtitle: 'Time tracking patterns and approval workflows',
-                icon: Icons.access_time_outlined,
-                color: AppTheme.accentBlue,
-                onTap: () => _navigateToReport('timesheet'),
-              ),
-              ReportCard(
-                title: 'Monthly Summary',
-                subtitle: 'Comprehensive monthly performance overview',
-                icon: Icons.calendar_month_outlined,
-                color: AppTheme.successGreen,
-                onTap: () => _navigateToReport('monthly'),
-              ),
-              ReportCard(
-                title: 'Financial Report',
-                subtitle: 'Revenue, costs, and profitability analysis',
-                icon: Icons.monetization_on_outlined,
-                color: AppTheme.infoBlue,
-                onTap: () => _navigateToReport('financial'),
-              ),
-              ReportCard(
-                title: 'Export Center',
-                subtitle: 'Download reports in PDF, Excel, or CSV format',
-                icon: Icons.download_outlined,
-                color: AppTheme.errorRed,
-                onTap: () => _showExportDialog(),
-              ),
-            ],
+          LayoutBuilder(
+            builder: (context, constraints) {
+              // Responsive grid - adjust columns based on width
+              final crossAxisCount = constraints.maxWidth > 600 ? 3 : 2;
+              final childAspectRatio = constraints.maxWidth > 600 ? 0.7 : 0.6;
+
+              return GridView.count(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                crossAxisCount: crossAxisCount,
+                crossAxisSpacing: AppTheme.spacingMd,
+                mainAxisSpacing: AppTheme.spacingMd,
+                childAspectRatio: childAspectRatio,
+                children: [
+                  ReportCard(
+                    title: 'Employee Performance',
+                    subtitle:
+                        'Detailed employee metrics and productivity analysis',
+                    icon: Icons.person_outline,
+                    color: AppTheme.primaryBlue,
+                    onTap: () => _navigateToReport('employee'),
+                  ),
+                  ReportCard(
+                    title: 'Project Analytics',
+                    subtitle: 'Project progress, costs, and timeline analysis',
+                    icon: Icons.work_outline,
+                    color: AppTheme.secondaryBlue,
+                    onTap: () => _navigateToReport('project'),
+                  ),
+                  ReportCard(
+                    title: 'Timesheet Insights',
+                    subtitle: 'Time tracking patterns and approval workflows',
+                    icon: Icons.access_time_outlined,
+                    color: AppTheme.accentBlue,
+                    onTap: () => _navigateToReport('timesheet'),
+                  ),
+                  ReportCard(
+                    title: 'Monthly Summary',
+                    subtitle: 'Comprehensive monthly performance overview',
+                    icon: Icons.calendar_month_outlined,
+                    color: AppTheme.successGreen,
+                    onTap: () => _navigateToReport('monthly'),
+                  ),
+                  ReportCard(
+                    title: 'Financial Report',
+                    subtitle: 'Revenue, costs, and profitability analysis',
+                    icon: Icons.monetization_on_outlined,
+                    color: AppTheme.infoBlue,
+                    onTap: () => _navigateToReport('financial'),
+                  ),
+                  ReportCard(
+                    title: 'Export Center',
+                    subtitle: 'Download reports in PDF, Excel, or CSV format',
+                    icon: Icons.download_outlined,
+                    color: AppTheme.errorRed,
+                    onTap: () => _showExportDialog(),
+                  ),
+                ],
+              );
+            },
           ),
         ],
       ),
@@ -466,43 +491,59 @@ class _ReportsScreenState extends State<ReportsScreen>
   }
 
   Widget _buildAnalyticsGrid(ReportProvider reportProvider) {
-    return GridView.count(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      crossAxisCount: 2,
-      crossAxisSpacing: AppTheme.spacingMd,
-      mainAxisSpacing: AppTheme.spacingMd,
-      childAspectRatio: 1.2,
-      children: [
-        _buildAnalyticsCard(
-          'Productivity',
-          '92%',
-          Icons.trending_up,
-          AppTheme.primaryBlue,
-          '+5% from last week',
-        ),
-        _buildAnalyticsCard(
-          'Efficiency',
-          '87%',
-          Icons.speed,
-          AppTheme.secondaryBlue,
-          '+3% from last week',
-        ),
-        _buildAnalyticsCard(
-          'Quality Score',
-          '94%',
-          Icons.star,
-          AppTheme.accentBlue,
-          '+2% from last week',
-        ),
-        _buildAnalyticsCard(
-          'Team Satisfaction',
-          '89%',
-          Icons.sentiment_satisfied,
-          AppTheme.successGreen,
-          '+7% from last week',
-        ),
-      ],
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        // Responsive grid - adjust columns based on width
+        final crossAxisCount = constraints.maxWidth > 800
+            ? 4
+            : constraints.maxWidth > 600
+                ? 2
+                : 1;
+        final childAspectRatio = constraints.maxWidth > 800
+            ? 1.6
+            : constraints.maxWidth > 600
+                ? 1.4
+                : 1.8;
+
+        return GridView.count(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          crossAxisCount: crossAxisCount,
+          crossAxisSpacing: AppTheme.spacingMd,
+          mainAxisSpacing: AppTheme.spacingMd,
+          childAspectRatio: childAspectRatio,
+          children: [
+            _buildAnalyticsCard(
+              'Productivity',
+              '92%',
+              Icons.trending_up,
+              AppTheme.primaryBlue,
+              '+5% from last week',
+            ),
+            _buildAnalyticsCard(
+              'Efficiency',
+              '87%',
+              Icons.speed,
+              AppTheme.secondaryBlue,
+              '+3% from last week',
+            ),
+            _buildAnalyticsCard(
+              'Quality Score',
+              '94%',
+              Icons.star,
+              AppTheme.accentBlue,
+              '+2% from last week',
+            ),
+            _buildAnalyticsCard(
+              'Team Satisfaction',
+              '89%',
+              Icons.sentiment_satisfied,
+              AppTheme.successGreen,
+              '+7% from last week',
+            ),
+          ],
+        );
+      },
     );
   }
 

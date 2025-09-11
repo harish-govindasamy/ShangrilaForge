@@ -80,7 +80,7 @@ class ReportCard extends StatelessWidget {
                 subtitle,
                 style: TextStyle(
                   fontSize: 12,
-                  color: Colors.grey[600],
+                  color: Colors.grey.withValues(alpha: 0.6),
                 ),
                 overflow: TextOverflow.ellipsis,
                 maxLines: 2,

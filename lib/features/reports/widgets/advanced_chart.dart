@@ -39,112 +39,142 @@ class _AdvancedChartState extends State<AdvancedChart>
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      height: 320,
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.1),
-            blurRadius: 20,
-            offset: const Offset(0, 10),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              const Text(
-                'Performance Analytics',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: Color(0xFF2C3E50),
-                ),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        // Responsive height based on screen width
+        final chartHeight = constraints.maxWidth > 600 ? 400.0 : 320.0;
+
+        return Container(
+          height: chartHeight,
+          width: double.infinity,
+          padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(20),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.1),
+                blurRadius: 20,
+                offset: const Offset(0, 10),
               ),
-              const Spacer(),
-              _buildChartSelector(),
             ],
           ),
-          const SizedBox(height: 20),
-          Expanded(
-            child: AnimatedBuilder(
-              animation: _animation,
-              builder: (context, child) {
-                return Opacity(
-                  opacity: _animation.value,
-                  child: _selectedIndex == 0
-                      ? _buildLineChart()
-                      : _selectedIndex == 1
-                          ? _buildBarChart()
-                          : _buildPieChart(),
-                );
-              },
-            ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      'Performance Analytics',
+                      style: TextStyle(
+                        fontSize: constraints.maxWidth > 400 ? 18 : 16,
+                        fontWeight: FontWeight.bold,
+                        color: const Color(0xFF2C3E50),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Flexible(
+                    child: _buildChartSelector(),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 20),
+              Expanded(
+                child: AnimatedBuilder(
+                  animation: _animation,
+                  builder: (context, child) {
+                    return Opacity(
+                      opacity: _animation.value,
+                      child: _selectedIndex == 0
+                          ? _buildLineChart()
+                          : _selectedIndex == 1
+                              ? _buildBarChart()
+                              : _buildPieChart(),
+                    );
+                  },
+                ),
+              ),
+            ],
           ),
-        ],
-      ),
+        );
+      },
     );
   }
 
   Widget _buildChartSelector() {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.grey[100],
-        borderRadius: BorderRadius.circular(25),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          _buildSelectorButton(0, Icons.show_chart, 'Line'),
-          _buildSelectorButton(1, Icons.bar_chart, 'Bar'),
-          _buildSelectorButton(2, Icons.pie_chart, 'Pie'),
-        ],
-      ),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        return Container(
+          decoration: BoxDecoration(
+            color: Colors.grey.withValues(alpha: 0.1),
+            borderRadius: BorderRadius.circular(25),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              _buildSelectorButton(0, Icons.show_chart, 'Line'),
+              _buildSelectorButton(1, Icons.bar_chart, 'Bar'),
+              _buildSelectorButton(2, Icons.pie_chart, 'Pie'),
+            ],
+          ),
+        );
+      },
     );
   }
 
   Widget _buildSelectorButton(int index, IconData icon, String label) {
     final isSelected = _selectedIndex == index;
-    return GestureDetector(
-      onTap: () {
-        setState(() {
-          _selectedIndex = index;
-        });
-        _animationController.reset();
-        _animationController.forward();
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final isCompact = constraints.maxWidth < 200;
+
+        return GestureDetector(
+          onTap: () {
+            setState(() {
+              _selectedIndex = index;
+            });
+            _animationController.reset();
+            _animationController.forward();
+          },
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 200),
+            padding: EdgeInsets.symmetric(
+                horizontal: isCompact ? 8 : 12, vertical: 8),
+            decoration: BoxDecoration(
+              color: isSelected ? const Color(0xFF667eea) : Colors.transparent,
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  icon,
+                  size: 16,
+                  color: isSelected
+                      ? Colors.white
+                      : Colors.grey.withValues(alpha: 0.6),
+                ),
+                if (!isCompact) ...[
+                  const SizedBox(width: 4),
+                  Text(
+                    label,
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: isSelected
+                          ? Colors.white
+                          : Colors.grey.withValues(alpha: 0.6),
+                      fontWeight:
+                          isSelected ? FontWeight.w600 : FontWeight.normal,
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ),
+        );
       },
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-        decoration: BoxDecoration(
-          color: isSelected ? const Color(0xFF667eea) : Colors.transparent,
-          borderRadius: BorderRadius.circular(20),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(
-              icon,
-              size: 16,
-              color: isSelected ? Colors.white : Colors.grey[600],
-            ),
-            const SizedBox(width: 4),
-            Text(
-              label,
-              style: TextStyle(
-                fontSize: 12,
-                color: isSelected ? Colors.white : Colors.grey[600],
-                fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
-              ),
-            ),
-          ],
-        ),
-      ),
     );
   }
 
@@ -169,7 +199,7 @@ class _AdvancedChartState extends State<AdvancedChart>
                     day,
                     style: TextStyle(
                       fontSize: 12,
-                      color: Colors.grey[600],
+                      color: Colors.grey.withValues(alpha: 0.6),
                       fontWeight: FontWeight.w500,
                     ),
                   ))
@@ -189,60 +219,67 @@ class _AdvancedChartState extends State<AdvancedChart>
       const Color(0xFF764ba2),
     ];
 
-    return Column(
-      children: [
-        Expanded(
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: List.generate(data.length, (index) {
-              return AnimatedContainer(
-                duration: Duration(milliseconds: 500 + (index * 100)),
-                width: 40,
-                height: (data[index] / 100) * 200 * _animation.value,
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [
-                      colors[index],
-                      colors[index].withValues(alpha: 0.7),
-                    ],
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                  ),
-                  borderRadius: const BorderRadius.only(
-                    topLeft: Radius.circular(4),
-                    topRight: Radius.circular(4),
-                  ),
-                ),
-                child: Center(
-                  child: Text(
-                    '${data[index].toInt()}%',
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 12,
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final barWidth = (constraints.maxWidth - 80) / data.length;
+        final actualBarWidth = math.min(barWidth, 40).toDouble();
+
+        return Column(
+          children: [
+            Expanded(
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: List.generate(data.length, (index) {
+                  return AnimatedContainer(
+                    duration: Duration(milliseconds: 500 + (index * 100)),
+                    width: actualBarWidth,
+                    height: (data[index] / 100) * 200 * _animation.value,
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [
+                          colors[index],
+                          colors[index].withValues(alpha: 0.7),
+                        ],
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                      ),
+                      borderRadius: const BorderRadius.only(
+                        topLeft: Radius.circular(4),
+                        topRight: Radius.circular(4),
+                      ),
                     ),
-                  ),
-                ),
-              );
-            }),
-          ),
-        ),
-        const SizedBox(height: 16),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-          children: labels
-              .map((label) => Text(
-                    label,
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: Colors.grey[600],
-                      fontWeight: FontWeight.w500,
+                    child: Center(
+                      child: Text(
+                        '${data[index].toInt()}%',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 12,
+                        ),
+                      ),
                     ),
-                  ))
-              .toList(),
-        ),
-      ],
+                  );
+                }),
+              ),
+            ),
+            const SizedBox(height: 16),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: labels
+                  .map((label) => Text(
+                        label,
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Colors.grey.withValues(alpha: 0.6),
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ))
+                  .toList(),
+            ),
+          ],
+        );
+      },
     );
   }
 
@@ -256,51 +293,107 @@ class _AdvancedChartState extends State<AdvancedChart>
     ];
     final labels = ['Projects', 'Tasks', 'Reports', 'Others'];
 
-    return Row(
-      children: [
-        Expanded(
-          flex: 2,
-          child: CustomPaint(
-            size: Size.infinite,
-            painter: PieChartPainter(data, colors, _animation.value),
-          ),
-        ),
-        const SizedBox(width: 20),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: List.generate(data.length, (index) {
-              return Padding(
-                padding: const EdgeInsets.symmetric(vertical: 4),
-                child: Row(
-                  children: [
-                    Container(
-                      width: 12,
-                      height: 12,
-                      decoration: BoxDecoration(
-                        color: colors[index],
-                        borderRadius: BorderRadius.circular(2),
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        '${labels[index]} (${data[index].toInt()}%)',
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: Colors.grey[700],
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                    ),
-                  ],
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final isSmallScreen = constraints.maxWidth < 400;
+
+        if (isSmallScreen) {
+          // Stack layout for small screens
+          return Column(
+            children: [
+              Expanded(
+                flex: 2,
+                child: CustomPaint(
+                  size: Size.infinite,
+                  painter: PieChartPainter(data, colors, _animation.value),
                 ),
-              );
-            }),
-          ),
-        ),
-      ],
+              ),
+              const SizedBox(height: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: List.generate(data.length, (index) {
+                    return Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 2),
+                      child: Row(
+                        children: [
+                          Container(
+                            width: 12,
+                            height: 12,
+                            decoration: BoxDecoration(
+                              color: colors[index],
+                              borderRadius: BorderRadius.circular(2),
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              '${labels[index]} (${data[index].toInt()}%)',
+                              style: TextStyle(
+                                fontSize: 11,
+                                color: Colors.grey.withValues(alpha: 0.7),
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  }),
+                ),
+              ),
+            ],
+          );
+        } else {
+          // Row layout for larger screens
+          return Row(
+            children: [
+              Expanded(
+                flex: 2,
+                child: CustomPaint(
+                  size: Size.infinite,
+                  painter: PieChartPainter(data, colors, _animation.value),
+                ),
+              ),
+              const SizedBox(width: 20),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: List.generate(data.length, (index) {
+                    return Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 4),
+                      child: Row(
+                        children: [
+                          Container(
+                            width: 12,
+                            height: 12,
+                            decoration: BoxDecoration(
+                              color: colors[index],
+                              borderRadius: BorderRadius.circular(2),
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              '${labels[index]} (${data[index].toInt()}%)',
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: Colors.grey.withValues(alpha: 0.7),
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  }),
+                ),
+              ),
+            ],
+          );
+        }
+      },
     );
   }
 }

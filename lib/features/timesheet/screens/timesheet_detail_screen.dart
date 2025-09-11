@@ -66,7 +66,7 @@ class _TimesheetDetailScreenState extends State<TimesheetDetailScreen> {
                   Icon(
                     Icons.error_outline,
                     size: 64,
-                    color: Colors.red[300],
+                    color: Colors.red.withValues(alpha: 0.7),
                   ),
                   const SizedBox(height: 16),
                   Text(
@@ -74,14 +74,14 @@ class _TimesheetDetailScreenState extends State<TimesheetDetailScreen> {
                     style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.w600,
-                      color: Colors.grey[700],
+                      color: Colors.grey.withValues(alpha: 0.7),
                     ),
                   ),
                   const SizedBox(height: 8),
                   Text(
                     timesheetProvider.errorMessage!,
                     style: TextStyle(
-                      color: Colors.grey[600],
+                      color: Colors.grey.withValues(alpha: 0.6),
                     ),
                     textAlign: TextAlign.center,
                   ),
@@ -312,7 +312,7 @@ class _TimesheetDetailScreenState extends State<TimesheetDetailScreen> {
       padding: const EdgeInsets.symmetric(vertical: 8),
       child: Row(
         children: [
-          Icon(icon, size: 20, color: Colors.grey[600]),
+          Icon(icon, size: 20, color: Colors.grey.withValues(alpha: 0.6)),
           const SizedBox(width: 12),
           Expanded(
             flex: 2,
@@ -385,15 +385,17 @@ class _TimesheetDetailScreenState extends State<TimesheetDetailScreen> {
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
                     color: hours > 0
-                        ? (isWeekend ? Colors.orange[50] : Colors.blue[50])
-                        : Colors.grey[50],
+                        ? (isWeekend
+                            ? Colors.orange.withValues(alpha: 0.1)
+                            : Colors.blue.withValues(alpha: 0.1))
+                        : Colors.grey.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(8),
                     border: Border.all(
                       color: hours > 0
                           ? (isWeekend
-                              ? Colors.orange[200]!
-                              : Colors.blue[200]!)
-                          : Colors.grey[200]!,
+                              ? Colors.orange.withValues(alpha: 0.5)
+                              : Colors.blue.withValues(alpha: 0.5))
+                          : Colors.grey.withValues(alpha: 0.5),
                     ),
                   ),
                   child: Column(
@@ -404,7 +406,7 @@ class _TimesheetDetailScreenState extends State<TimesheetDetailScreen> {
                         style: TextStyle(
                           fontSize: 10,
                           fontWeight: FontWeight.w500,
-                          color: Colors.grey[600],
+                          color: Colors.grey.withValues(alpha: 0.6),
                         ),
                       ),
                       const SizedBox(height: 2),
@@ -412,7 +414,7 @@ class _TimesheetDetailScreenState extends State<TimesheetDetailScreen> {
                         DateFormat('M/d').format(date),
                         style: TextStyle(
                           fontSize: 9,
-                          color: Colors.grey[500],
+                          color: Colors.grey.withValues(alpha: 0.5),
                         ),
                       ),
                       const SizedBox(height: 4),
@@ -423,9 +425,9 @@ class _TimesheetDetailScreenState extends State<TimesheetDetailScreen> {
                           fontWeight: FontWeight.bold,
                           color: hours > 0
                               ? (isWeekend
-                                  ? Colors.orange[700]
-                                  : Colors.blue[700])
-                              : Colors.grey[400],
+                                  ? Colors.orange.withValues(alpha: 0.7)
+                                  : Colors.blue.withValues(alpha: 0.7))
+                              : Colors.grey.withValues(alpha: 0.4),
                         ),
                       ),
                     ],
@@ -527,7 +529,7 @@ class _TimesheetDetailScreenState extends State<TimesheetDetailScreen> {
             label,
             style: TextStyle(
               fontSize: 12,
-              color: Colors.grey[600],
+              color: Colors.grey.withValues(alpha: 0.6),
             ),
             textAlign: TextAlign.center,
           ),
@@ -644,7 +646,7 @@ class _TimesheetDetailScreenState extends State<TimesheetDetailScreen> {
                       Icon(
                         Icons.circle,
                         size: 8,
-                        color: Colors.blue[300],
+                        color: Colors.blue.withValues(alpha: 0.7),
                       ),
                       const SizedBox(width: 12),
                       Expanded(
@@ -657,7 +659,7 @@ class _TimesheetDetailScreenState extends State<TimesheetDetailScreen> {
                         DateFormat('MMM dd, yyyy HH:mm')
                             .format(record.modifiedAt),
                         style: TextStyle(
-                          color: Colors.grey[600],
+                          color: Colors.grey.withValues(alpha: 0.6),
                           fontSize: 12,
                         ),
                       ),

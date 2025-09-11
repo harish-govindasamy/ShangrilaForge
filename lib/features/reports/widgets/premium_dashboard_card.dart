@@ -164,8 +164,8 @@ class _PremiumDashboardCardState extends State<PremiumDashboardCard>
                                       ? Icons.trending_up
                                       : Icons.trending_down,
                                   color: widget.isPositive
-                                      ? Colors.green[300]
-                                      : Colors.red[300],
+                                      ? Colors.green.withValues(alpha: 0.7)
+                                      : Colors.red.withValues(alpha: 0.7),
                                   size: 16,
                                 ),
                                 const SizedBox(width: 4),
@@ -173,8 +173,8 @@ class _PremiumDashboardCardState extends State<PremiumDashboardCard>
                                   widget.trend,
                                   style: TextStyle(
                                     color: widget.isPositive
-                                        ? Colors.green[300]
-                                        : Colors.red[300],
+                                        ? Colors.green.withValues(alpha: 0.7)
+                                        : Colors.red.withValues(alpha: 0.7),
                                     fontWeight: FontWeight.bold,
                                     fontSize: 12,
                                   ),

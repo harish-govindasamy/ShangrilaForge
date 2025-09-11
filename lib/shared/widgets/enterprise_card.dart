@@ -355,91 +355,194 @@ class EnterpriseInfoCard extends StatelessWidget {
     return EnterpriseCard(
       type: EnterpriseCardType.elevated,
       onTap: onTap,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final isNarrow = constraints.maxWidth < 200;
+
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
             children: [
-              if (icon != null) ...[
-                Container(
-                  padding: EdgeInsets.all(AppTheme.spacingSm),
-                  decoration: BoxDecoration(
-                    color: primaryColor.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(AppTheme.radiusSm),
-                  ),
-                  child: Icon(
-                    icon,
-                    color: primaryColor,
-                    size: 24,
-                  ),
-                ),
-                SizedBox(width: AppTheme.spacingMd),
-              ],
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      title,
-                      style: AppTheme.titleSmall,
-                    ),
-                    SizedBox(height: AppTheme.spacingXs),
-                    Text(
-                      value,
-                      style: AppTheme.headingMedium.copyWith(
+              if (isNarrow) ...[
+                // Vertical layout for narrow cards
+                if (icon != null) ...[
+                  Center(
+                    child: Container(
+                      padding: EdgeInsets.all(AppTheme.spacingSm),
+                      decoration: BoxDecoration(
+                        color: primaryColor.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(AppTheme.radiusSm),
+                      ),
+                      child: Icon(
+                        icon,
                         color: primaryColor,
+                        size: 24,
                       ),
                     ),
-                  ],
+                  ),
+                  SizedBox(height: AppTheme.spacingSm),
+                ],
+                Text(
+                  title,
+                  style: AppTheme.titleSmall,
+                  textAlign: TextAlign.center,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
                 ),
-              ),
-              if (trend != null)
-                Container(
-                  padding: EdgeInsets.symmetric(
-                    horizontal: AppTheme.spacingSm,
-                    vertical: AppTheme.spacingXs,
+                SizedBox(height: AppTheme.spacingXs),
+                Text(
+                  value,
+                  style: AppTheme.headingMedium.copyWith(
+                    color: primaryColor,
                   ),
-                  decoration: BoxDecoration(
-                    color: (isPositiveTrend
-                            ? AppTheme.successGreen
-                            : AppTheme.errorRed)
-                        .withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(AppTheme.radiusXs),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                        isPositiveTrend
-                            ? Icons.trending_up
-                            : Icons.trending_down,
-                        size: 16,
-                        color: isPositiveTrend
-                            ? AppTheme.successGreen
-                            : AppTheme.errorRed,
+                  textAlign: TextAlign.center,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                if (trend != null) ...[
+                  SizedBox(height: AppTheme.spacingSm),
+                  Center(
+                    child: Container(
+                      padding: EdgeInsets.symmetric(
+                        horizontal: AppTheme.spacingSm,
+                        vertical: AppTheme.spacingXs,
                       ),
-                      SizedBox(width: AppTheme.spacingXs),
-                      Text(
-                        trend!,
-                        style: AppTheme.labelMedium.copyWith(
-                          color: isPositiveTrend
-                              ? AppTheme.successGreen
-                              : AppTheme.errorRed,
+                      decoration: BoxDecoration(
+                        color: (isPositiveTrend
+                                ? AppTheme.successGreen
+                                : AppTheme.errorRed)
+                            .withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(AppTheme.radiusXs),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            isPositiveTrend
+                                ? Icons.trending_up
+                                : Icons.trending_down,
+                            size: 14,
+                            color: isPositiveTrend
+                                ? AppTheme.successGreen
+                                : AppTheme.errorRed,
+                          ),
+                          SizedBox(width: AppTheme.spacingXs),
+                          Flexible(
+                            child: Text(
+                              trend!,
+                              style: AppTheme.labelMedium.copyWith(
+                                color: isPositiveTrend
+                                    ? AppTheme.successGreen
+                                    : AppTheme.errorRed,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ] else ...[
+                // Horizontal layout for wider cards
+                Row(
+                  children: [
+                    if (icon != null) ...[
+                      Container(
+                        padding: EdgeInsets.all(AppTheme.spacingSm),
+                        decoration: BoxDecoration(
+                          color: primaryColor.withValues(alpha: 0.1),
+                          borderRadius:
+                              BorderRadius.circular(AppTheme.radiusSm),
+                        ),
+                        child: Icon(
+                          icon,
+                          color: primaryColor,
+                          size: 24,
                         ),
                       ),
+                      SizedBox(width: AppTheme.spacingMd),
                     ],
-                  ),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            title,
+                            style: AppTheme.titleSmall,
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          SizedBox(height: AppTheme.spacingXs),
+                          Text(
+                            value,
+                            style: AppTheme.headingMedium.copyWith(
+                              color: primaryColor,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ],
+                      ),
+                    ),
+                    if (trend != null)
+                      Container(
+                        padding: EdgeInsets.symmetric(
+                          horizontal: AppTheme.spacingSm,
+                          vertical: AppTheme.spacingXs,
+                        ),
+                        decoration: BoxDecoration(
+                          color: (isPositiveTrend
+                                  ? AppTheme.successGreen
+                                  : AppTheme.errorRed)
+                              .withValues(alpha: 0.1),
+                          borderRadius:
+                              BorderRadius.circular(AppTheme.radiusXs),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              isPositiveTrend
+                                  ? Icons.trending_up
+                                  : Icons.trending_down,
+                              size: 16,
+                              color: isPositiveTrend
+                                  ? AppTheme.successGreen
+                                  : AppTheme.errorRed,
+                            ),
+                            SizedBox(width: AppTheme.spacingXs),
+                            Flexible(
+                              child: Text(
+                                trend!,
+                                style: AppTheme.labelMedium.copyWith(
+                                  color: isPositiveTrend
+                                      ? AppTheme.successGreen
+                                      : AppTheme.errorRed,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                  ],
                 ),
+              ],
+              if (subtitle != null) ...[
+                SizedBox(height: AppTheme.spacingSm),
+                Text(
+                  subtitle!,
+                  style: AppTheme.bodySmall,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
             ],
-          ),
-          if (subtitle != null) ...[
-            SizedBox(height: AppTheme.spacingSm),
-            Text(
-              subtitle!,
-              style: AppTheme.bodySmall,
-            ),
-          ],
-        ],
+          );
+        },
       ),
     );
   }

@@ -74,7 +74,7 @@ class TimesheetCard extends StatelessWidget {
                           '${DateFormat('MMM dd').format(timesheet.weekStartDate)} - ${DateFormat('MMM dd, yyyy').format(timesheet.weekEndDate)}',
                           style: TextStyle(
                             fontSize: 14,
-                            color: Colors.grey[600],
+                            color: Colors.grey.withValues(alpha: 0.6),
                             fontWeight: FontWeight.w500,
                           ),
                         ),
@@ -232,13 +232,13 @@ class TimesheetCard extends StatelessWidget {
   Widget _buildDetailItem(IconData icon, String label, String value) {
     return Column(
       children: [
-        Icon(icon, size: 20, color: Colors.grey[600]),
+        Icon(icon, size: 20, color: Colors.grey.withValues(alpha: 0.6)),
         const SizedBox(height: 4),
         Text(
           label,
           style: TextStyle(
             fontSize: 12,
-            color: Colors.grey[600],
+            color: Colors.grey.withValues(alpha: 0.6),
           ),
         ),
         const SizedBox(height: 2),

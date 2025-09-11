@@ -207,7 +207,7 @@ class _AddTimesheetScreenState extends State<AddTimesheetScreen> {
                           style: TextStyle(
                             color: _selectedWeekStart != null
                                 ? Colors.black87
-                                : Colors.grey[600],
+                                : Colors.grey.withValues(alpha: 0.6),
                           ),
                         ),
                       ),
@@ -228,7 +228,7 @@ class _AddTimesheetScreenState extends State<AddTimesheetScreen> {
                         style: TextStyle(
                           color: _selectedWeekEnd != null
                               ? Colors.black87
-                              : Colors.grey[600],
+                              : Colors.grey.withValues(alpha: 0.6),
                         ),
                       ),
                     ),
@@ -277,7 +277,7 @@ class _AddTimesheetScreenState extends State<AddTimesheetScreen> {
                           DateFormat('MMM dd').format(date),
                           style: TextStyle(
                             fontSize: 10,
-                            color: Colors.grey[600],
+                            color: Colors.grey.withValues(alpha: 0.6),
                           ),
                         ),
                       const SizedBox(height: 4),
