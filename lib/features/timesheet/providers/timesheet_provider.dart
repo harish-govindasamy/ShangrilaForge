@@ -202,16 +202,26 @@ class TimesheetProvider extends ChangeNotifier {
     _clearError();
 
     try {
-      // Update status locally first
+      // Find timesheet and validate
       final index = _timesheets.indexWhere((ts) => ts.userId == id);
-      if (index != -1) {
-        _timesheets[index] =
-            _timesheets[index].copyWith(status: TimesheetStatus.submitted);
-        await _localStorageService.saveTimesheets(_timesheets);
+      if (index == -1) {
+        throw Exception('Timesheet not found');
       }
+
+      final currentTimesheet = _timesheets[index];
+      if (currentTimesheet.status != TimesheetStatus.draft) {
+        throw Exception('Can only submit draft timesheets');
+      }
+
+      // Update status locally first
+      _timesheets[index] = _timesheets[index].copyWith(
+        status: TimesheetStatus.submitted,
+        updatedAt: DateTime.now(),
+      );
+      await _localStorageService.saveTimesheets(_timesheets);
+
       if (_selectedTimesheet?.userId == id) {
-        _selectedTimesheet =
-            _selectedTimesheet!.copyWith(status: TimesheetStatus.submitted);
+        _selectedTimesheet = _timesheets[index];
       }
       notifyListeners();
 
@@ -219,22 +229,23 @@ class TimesheetProvider extends ChangeNotifier {
       try {
         final updatedTimesheet =
             await _timesheetService.submitTimesheet(id, 'Employee Name');
-        if (index != -1) {
-          _timesheets[index] = updatedTimesheet;
-          await _localStorageService.saveTimesheets(_timesheets);
-        }
+        _timesheets[index] = updatedTimesheet;
+        await _localStorageService.saveTimesheets(_timesheets);
         if (_selectedTimesheet?.userId == id) {
           _selectedTimesheet = updatedTimesheet;
         }
         notifyListeners();
+        _logger.info('Timesheet submitted successfully: $id');
       } catch (apiError) {
         _logger
             .warning('API sync failed during timesheet submission: $apiError');
+        // Keep local changes even if API fails
       }
 
       return true;
     } catch (e) {
       _setError(e.toString());
+      _logger.severe('Failed to submit timesheet: $e');
       return false;
     } finally {
       _setLoading(false);
@@ -247,37 +258,104 @@ class TimesheetProvider extends ChangeNotifier {
     _clearError();
 
     try {
-      // Update status locally first
+      // Find timesheet and validate
       final index = _timesheets.indexWhere((ts) => ts.userId == id);
-      if (index != -1) {
-        _timesheets[index] =
-            _timesheets[index].copyWith(status: TimesheetStatus.approved);
-        await _localStorageService.saveTimesheets(_timesheets);
+      if (index == -1) {
+        throw Exception('Timesheet not found');
       }
+
+      final currentTimesheet = _timesheets[index];
+      if (currentTimesheet.status != TimesheetStatus.submitted) {
+        throw Exception('Can only approve submitted timesheets');
+      }
+
+      // Update status locally first
+      _timesheets[index] = _timesheets[index].copyWith(
+        status: TimesheetStatus.approved,
+        updatedAt: DateTime.now(),
+      );
+      await _localStorageService.saveTimesheets(_timesheets);
+
       if (_selectedTimesheet?.userId == id) {
-        _selectedTimesheet =
-            _selectedTimesheet!.copyWith(status: TimesheetStatus.approved);
+        _selectedTimesheet = _timesheets[index];
       }
       notifyListeners();
 
       // Try to sync with API
       try {
         final updatedTimesheet = await _timesheetService.approveTimesheet(id);
-        if (index != -1) {
-          _timesheets[index] = updatedTimesheet;
-          await _localStorageService.saveTimesheets(_timesheets);
-        }
+        _timesheets[index] = updatedTimesheet;
+        await _localStorageService.saveTimesheets(_timesheets);
         if (_selectedTimesheet?.userId == id) {
           _selectedTimesheet = updatedTimesheet;
         }
         notifyListeners();
+        _logger.info('Timesheet approved successfully: $id');
       } catch (apiError) {
         _logger.warning('API sync failed during timesheet approval: $apiError');
+        // Keep local changes even if API fails
       }
 
       return true;
     } catch (e) {
       _setError(e.toString());
+      _logger.severe('Failed to approve timesheet: $e');
+      return false;
+    } finally {
+      _setLoading(false);
+    }
+  }
+
+  // Reject timesheet
+  Future<bool> rejectTimesheet(String id, {String? feedback}) async {
+    _setLoading(true);
+    _clearError();
+
+    try {
+      // Find timesheet and validate
+      final index = _timesheets.indexWhere((ts) => ts.userId == id);
+      if (index == -1) {
+        throw Exception('Timesheet not found');
+      }
+
+      final currentTimesheet = _timesheets[index];
+      if (currentTimesheet.status != TimesheetStatus.submitted) {
+        throw Exception('Can only reject submitted timesheets');
+      }
+
+      // Update status locally first
+      _timesheets[index] = _timesheets[index].copyWith(
+        status: TimesheetStatus.rejected,
+        updatedAt: DateTime.now(),
+      );
+      await _localStorageService.saveTimesheets(_timesheets);
+
+      if (_selectedTimesheet?.userId == id) {
+        _selectedTimesheet = _timesheets[index];
+      }
+      notifyListeners();
+
+      // Try to sync with API
+      try {
+        final updatedTimesheet =
+            await _timesheetService.rejectTimesheet(id, feedback ?? 'Rejected');
+        _timesheets[index] = updatedTimesheet;
+        await _localStorageService.saveTimesheets(_timesheets);
+        if (_selectedTimesheet?.userId == id) {
+          _selectedTimesheet = updatedTimesheet;
+        }
+        notifyListeners();
+        _logger.info('Timesheet rejected successfully: $id');
+      } catch (apiError) {
+        _logger
+            .warning('API sync failed during timesheet rejection: $apiError');
+        // Keep local changes even if API fails
+      }
+
+      return true;
+    } catch (e) {
+      _setError(e.toString());
+      _logger.severe('Failed to reject timesheet: $e');
       return false;
     } finally {
       _setLoading(false);

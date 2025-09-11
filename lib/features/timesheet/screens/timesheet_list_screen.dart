@@ -288,6 +288,8 @@ class _TimesheetListScreenState extends State<TimesheetListScreen> {
                     backgroundColor: Colors.green,
                   ),
                 );
+                // Refresh the timesheet list to show updated status
+                context.read<TimesheetProvider>().loadTimesheets();
               } else if (context.mounted) {
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
@@ -334,6 +336,8 @@ class _TimesheetListScreenState extends State<TimesheetListScreen> {
                     backgroundColor: Colors.green,
                   ),
                 );
+                // Refresh the timesheet list to show updated status
+                context.read<TimesheetProvider>().loadTimesheets();
               } else if (context.mounted) {
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(

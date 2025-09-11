@@ -772,6 +772,10 @@ class _TimesheetDetailScreenState extends State<TimesheetDetailScreen> {
           backgroundColor: success ? Colors.green : Colors.red,
         ),
       );
+      if (success) {
+        // Refresh the timesheet details to show updated status
+        context.read<TimesheetProvider>().loadTimesheetById(widget.timesheetId);
+      }
     }
   }
 
@@ -788,18 +792,79 @@ class _TimesheetDetailScreenState extends State<TimesheetDetailScreen> {
           backgroundColor: success ? Colors.green : Colors.red,
         ),
       );
+      if (success) {
+        // Refresh the timesheet details to show updated status
+        context.read<TimesheetProvider>().loadTimesheetById(widget.timesheetId);
+      }
     }
   }
 
   void _rejectTimesheet(Timesheet timesheet) async {
-    // Implementation for reject would be similar to approve
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Reject functionality not implemented yet'),
-        backgroundColor: Colors.orange,
+    // Show feedback dialog
+    final feedback = await showDialog<String>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Reject Timesheet'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text('Please provide feedback for rejection:'),
+            const SizedBox(height: 16),
+            TextField(
+              controller: TextEditingController(),
+              decoration: const InputDecoration(
+                labelText: 'Feedback',
+                border: OutlineInputBorder(),
+                hintText: 'Enter reason for rejection...',
+              ),
+              maxLines: 3,
+              onChanged: (value) => _rejectionFeedback = value,
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.of(context).pop(
+                _rejectionFeedback.isNotEmpty
+                    ? _rejectionFeedback
+                    : 'Rejected without feedback'),
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+            child: const Text('Reject'),
+          ),
+        ],
       ),
     );
+
+    if (feedback != null && mounted) {
+      final success = await context
+          .read<TimesheetProvider>()
+          .rejectTimesheet(timesheet.userId, feedback: feedback);
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(success
+                ? 'Timesheet rejected successfully'
+                : 'Failed to reject timesheet'),
+            backgroundColor: success ? Colors.orange : Colors.red,
+          ),
+        );
+
+        if (success) {
+          // Refresh the timesheet details to show updated status
+          context
+              .read<TimesheetProvider>()
+              .loadTimesheetById(widget.timesheetId);
+        }
+      }
+    }
   }
+
+  String _rejectionFeedback = '';
 
   void _deleteTimesheet(Timesheet timesheet) async {
     final confirmed = await showDialog<bool>(

@@ -284,7 +284,7 @@ class TimesheetService {
       }
 
       final response = await _apiService.post(
-        ApiEndpoints.timesheets, // Adjust endpoint as needed
+        '/timesheets/reject', // Use direct path for reject
         data: {
           'timesheet_id': id,
           'status': TimesheetStatus.rejected.name,

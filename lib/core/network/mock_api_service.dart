@@ -6,47 +6,18 @@ class MockApiService {
   factory MockApiService() => _instance;
   MockApiService._internal();
 
-  // Mock data
-  final Map<String, dynamic> _mockUsers = {
-    'admin@shangrila.com': {
-      'userId': '1',
-      'userName': 'Admin User',
-      'employeeId': 'EMP001',
-      'role': 'admin',
-      'password': '',
-      'new_password': '',
-      'createdAt': '2024-01-01T00:00:00Z',
-      'updatedAt': '2024-01-01T00:00:00Z',
-      'createdBy': 'system',
-      'updatedBy': 'system',
-      'recordTracking': [],
-    },
-    'principal@shangrila.com': {
-      'userId': '2',
-      'userName': 'Principal User',
-      'employeeId': 'EMP002',
-      'role': 'principal',
-      'password': '',
-      'new_password': '',
-      'createdAt': '2024-01-01T00:00:00Z',
-      'updatedAt': '2024-01-01T00:00:00Z',
-      'createdBy': 'system',
-      'updatedBy': 'system',
-      'recordTracking': [],
-    },
-    'employee@shangrila.com': {
-      'userId': '3',
-      'userName': 'Employee User',
-      'employeeId': 'EMP003',
-      'role': 'employee',
-      'password': '',
-      'new_password': '',
-      'createdAt': '2024-01-01T00:00:00Z',
-      'updatedAt': '2024-01-01T00:00:00Z',
-      'createdBy': 'system',
-      'updatedBy': 'system',
-      'recordTracking': [],
-    },
+  // In-memory storage for timesheet statuses to persist during session
+  final Map<String, String> _timesheetStatuses = {
+    'USER001': 'approved',
+    'USER002': 'submitted',
+    'USER003': 'draft',
+  };
+
+  // Mock user credentials
+  final Map<String, String> _mockPasswords = {
+    'admin@shangrila.com': 'admin123',
+    'principal@shangrila.com': 'principal123',
+    'employee@shangrila.com': 'employee123',
   };
 
   final Map<String, dynamic> _mockEmployees = {
@@ -142,10 +113,29 @@ class MockApiService {
     },
   };
 
-  final Map<String, String> _mockPasswords = {
-    'admin@shangrila.com': 'admin123',
-    'principal@shangrila.com': 'principal123',
-    'employee@shangrila.com': 'employee123',
+  // Mock user data for authentication
+  final Map<String, Map<String, dynamic>> _mockUsers = {
+    'admin@shangrila.com': {
+      'id': 'USER001',
+      'email': 'admin@shangrila.com',
+      'role': 'admin',
+      'isActive': true,
+      'createdAt': '2024-01-01T00:00:00Z',
+    },
+    'principal@shangrila.com': {
+      'id': 'USER002',
+      'email': 'principal@shangrila.com',
+      'role': 'principal',
+      'isActive': true,
+      'createdAt': '2024-01-01T00:00:00Z',
+    },
+    'employee@shangrila.com': {
+      'id': 'USER003',
+      'email': 'employee@shangrila.com',
+      'role': 'employee',
+      'isActive': true,
+      'createdAt': '2024-01-01T00:00:00Z',
+    },
   };
 
   Future<Response<T>> post<T>(
@@ -171,6 +161,12 @@ class MockApiService {
       return _handleCreateTimesheet(data) as Response<T>;
     } else if (path == ApiEndpoints.createCustomer) {
       return _handleCreateCustomer(data) as Response<T>;
+    } else if (path == ApiEndpoints.submitTimesheet) {
+      return _handleSubmitTimesheet(data) as Response<T>;
+    } else if (path == ApiEndpoints.approveTimesheet) {
+      return _handleApproveTimesheet(data) as Response<T>;
+    } else if (path.startsWith('/timesheets/reject')) {
+      return _handleRejectTimesheet(data) as Response<T>;
     }
 
     throw DioException(
@@ -524,6 +520,14 @@ class MockApiService {
       },
     ];
 
+    // Update statuses from in-memory storage
+    for (var timesheet in timesheets) {
+      final userId = timesheet['user_id'];
+      if (_timesheetStatuses.containsKey(userId)) {
+        timesheet['status'] = _timesheetStatuses[userId];
+      }
+    }
+
     // Handle search query
     if (queryParameters != null && queryParameters.containsKey('search')) {
       final searchQuery = queryParameters['search'].toString().toLowerCase();
@@ -779,6 +783,141 @@ class MockApiService {
       requestOptions: RequestOptions(path: ApiEndpoints.createTimesheet),
       statusCode: 201,
       data: data,
+    );
+  }
+
+  Response _handleSubmitTimesheet(dynamic data) {
+    final timesheetId = data['timesheet_id'];
+    final userId = data['user_id'] ?? timesheetId;
+
+    // Update in-memory status
+    _timesheetStatuses[userId] = 'submitted';
+
+    // Simulate updating the timesheet status to submitted
+    final updatedTimesheet = {
+      'user_id': userId,
+      'employee_id': 'EMP001', // This would typically come from the database
+      'project_id': '1',
+      'task_id': 'TASK001',
+      'week_start_date': '2024-01-15T00:00:00Z',
+      'week_end_date': '2024-01-30T00:00:00Z',
+      'created_by': 'admin',
+      'createdAt': DateTime.now().toIso8601String(),
+      'updatedAt': DateTime.now().toIso8601String(),
+      'day_1_hours': 8.0,
+      'day_2_hours': 8.0,
+      'day_3_hours': 8.0,
+      'day_4_hours': 8.0,
+      'day_5_hours': 8.0,
+      'day_6_hours': 0.0,
+      'day_7_hours': 0.0,
+      'day_8_hours': 0.0,
+      'day_9_hours': 0.0,
+      'day_10_hours': 0.0,
+      'day_11_hours': 0.0,
+      'day_12_hours': 0.0,
+      'day_13_hours': 0.0,
+      'day_14_hours': 0.0,
+      'day_15_hours': 0.0,
+      'day_16_hours': 0.0,
+      'status': 'submitted', // Changed to submitted
+      'recordTracking': [],
+    };
+
+    return Response(
+      requestOptions: RequestOptions(path: ApiEndpoints.submitTimesheet),
+      statusCode: 200,
+      data: updatedTimesheet,
+    );
+  }
+
+  Response _handleApproveTimesheet(dynamic data) {
+    final timesheetId = data['timesheet_id'];
+    final userId = data['user_id'] ?? timesheetId;
+
+    // Update in-memory status
+    _timesheetStatuses[userId] = 'approved';
+
+    // Simulate updating the timesheet status to approved
+    final updatedTimesheet = {
+      'user_id': userId,
+      'employee_id': 'EMP001', // This would typically come from the database
+      'project_id': '1',
+      'task_id': 'TASK001',
+      'week_start_date': '2024-01-15T00:00:00Z',
+      'week_end_date': '2024-01-30T00:00:00Z',
+      'created_by': 'admin',
+      'createdAt': DateTime.now().toIso8601String(),
+      'updatedAt': DateTime.now().toIso8601String(),
+      'day_1_hours': 8.0,
+      'day_2_hours': 8.0,
+      'day_3_hours': 8.0,
+      'day_4_hours': 8.0,
+      'day_5_hours': 8.0,
+      'day_6_hours': 0.0,
+      'day_7_hours': 0.0,
+      'day_8_hours': 0.0,
+      'day_9_hours': 0.0,
+      'day_10_hours': 0.0,
+      'day_11_hours': 0.0,
+      'day_12_hours': 0.0,
+      'day_13_hours': 0.0,
+      'day_14_hours': 0.0,
+      'day_15_hours': 0.0,
+      'day_16_hours': 0.0,
+      'status': 'approved', // Changed to approved
+      'recordTracking': [],
+    };
+
+    return Response(
+      requestOptions: RequestOptions(path: ApiEndpoints.approveTimesheet),
+      statusCode: 200,
+      data: updatedTimesheet,
+    );
+  }
+
+  Response _handleRejectTimesheet(dynamic data) {
+    final timesheetId = data['timesheet_id'] ?? data['id'];
+    final userId = data['user_id'] ?? timesheetId;
+
+    // Update in-memory status
+    _timesheetStatuses[userId] = 'rejected';
+
+    // Simulate updating the timesheet status to rejected
+    final updatedTimesheet = {
+      'user_id': userId,
+      'employee_id': 'EMP001', // This would typically come from the database
+      'project_id': '1',
+      'task_id': 'TASK001',
+      'week_start_date': '2024-01-15T00:00:00Z',
+      'week_end_date': '2024-01-30T00:00:00Z',
+      'created_by': 'admin',
+      'createdAt': DateTime.now().toIso8601String(),
+      'updatedAt': DateTime.now().toIso8601String(),
+      'day_1_hours': 8.0,
+      'day_2_hours': 8.0,
+      'day_3_hours': 8.0,
+      'day_4_hours': 8.0,
+      'day_5_hours': 8.0,
+      'day_6_hours': 0.0,
+      'day_7_hours': 0.0,
+      'day_8_hours': 0.0,
+      'day_9_hours': 0.0,
+      'day_10_hours': 0.0,
+      'day_11_hours': 0.0,
+      'day_12_hours': 0.0,
+      'day_13_hours': 0.0,
+      'day_14_hours': 0.0,
+      'day_15_hours': 0.0,
+      'day_16_hours': 0.0,
+      'status': 'rejected', // Changed to rejected
+      'recordTracking': [],
+    };
+
+    return Response(
+      requestOptions: RequestOptions(path: '/timesheets/reject'),
+      statusCode: 200,
+      data: updatedTimesheet,
     );
   }
 
